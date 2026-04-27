@@ -1,0 +1,11 @@
+services:
+  frontend:
+    build: .
+    container_name: uniro-frontend
+    network_mode: host
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+      - PORT=3080
+      - HOSTNAME=0.0.0.0
+    restart: unless-stopped

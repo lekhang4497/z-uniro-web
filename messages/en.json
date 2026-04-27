@@ -1,0 +1,338 @@
+{
+  "nav": {
+    "home": "Home",
+    "chat": "Chat",
+    "docs": "Docs",
+    "pricing": "Pricing",
+    "getStarted": "Get Started"
+  },
+  "hero": {
+    "badge": "Now in beta — OpenAI-compatible API",
+    "titleLine1": "The Right Model. The Right Price.",
+    "titleLine2": "Every Time.",
+    "subtitle": "The only LLM router that picks the cheapest model that's actually good — for your query, in your language. Drop-in OpenAI replacement.",
+    "ctaPrimary": "Chat now",
+    "ctaSecondary": "Read the docs →",
+    "codeComment": "# Change 2 lines. That's it."
+  },
+  "trustBar": {
+    "costSavings": "Cost savings",
+    "routingOverhead": "Routing overhead",
+    "llmProviders": "LLM providers",
+    "toIntegrate": "To integrate"
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "subtitle": "Three steps. Zero code changes beyond the URL.",
+    "step1Title": "You send a request",
+    "step1Desc": "Just use the OpenAI SDK. Point it at UniRo. Done.",
+    "step2Title": "UniRo picks the best model",
+    "step2Desc": "We look at three things other routers ignore:",
+    "step2Complexity": "Complexity",
+    "step2ComplexityText": "How hard is this query?",
+    "step2Cost": "Cost",
+    "step2CostText": "Real price per model",
+    "step2Language": "Language",
+    "step2LanguageText": "How many tokens does THIS model use for YOUR language?",
+    "step2Footer": "This is what makes us different from every other router.",
+    "step3Title": "Response streams back",
+    "step3Desc": "Same format as OpenAI. Your code doesn't change.",
+    "step4Title": "See exactly where your money goes",
+    "step4Desc": "Full request logs, per-model costs, latency tracking. Know which features are expensive before the bill arrives."
+  },
+  "languageProblem": {
+    "titleStart": "Your language costs more. ",
+    "titleHighlight": "We fix that.",
+    "para1Start": "LLMs use different tokenizers. The same sentence in Vietnamese uses ",
+    "para1Bold": "2-3x more tokens",
+    "para1End": " than English.",
+    "para2Start": "But here's the thing nobody talks about: each model has a ",
+    "para2Bold": "different tokenizer",
+    "para2End": ". So Model A might be 3x cheaper than Model B for Vietnamese — but more expensive for English.",
+    "para3": "No other router accounts for this. We do.",
+    "tokenBoxTitle": "Same meaning, different token count",
+    "tokenEnglish": "English: \"What is machine learning?\"",
+    "tokenEnglishCount": "5 tokens",
+    "tokenVietnamese": "Vietnamese: \"Hoc may la gi?\"",
+    "tokenVietnameseCount": "11 tokens (2.2x)",
+    "tokenJapanese": "Japanese: \"Kikai gakushuu to wa?\"",
+    "tokenJapaneseCount": "14 tokens (2.8x)",
+    "tableTitle": "Same Vietnamese paragraph — each model charges differently",
+    "tableModel": "Model",
+    "tableTokens": "Tokens",
+    "tablePricePerM": "$/M",
+    "tableEffective": "Effective",
+    "tableFooterStart": "Gemini Flash is ",
+    "tableFooterHighlight": "18x cheaper",
+    "tableFooterEnd": " than GPT-5.4 for this text."
+  },
+  "features": {
+    "title": "Everything you need to cut LLM costs",
+    "subtitle": "Drop-in replacement. Instant savings. No lock-in.",
+    "languageAwareRouting": "Language-Aware Routing",
+    "languageAwareRoutingDesc": "Picks the cheapest model that's good for YOUR language. Not just complexity — the full picture.",
+    "costSavings": "50-80% Cost Savings",
+    "costSavingsDesc": "Smart routing + compression. Real savings from real optimization, not marketing numbers.",
+    "dropInCompatible": "Drop-in Compatible",
+    "dropInCompatibleDesc": "OpenAI-compatible API. Works with Claude Code, VSCode, LangChain. Change 2 lines of code.",
+    "openWeightModels": "Open-Weight Models",
+    "openWeightModelsDesc": "Ollama, vLLM, any OpenAI-compat endpoint. Route simple queries locally for $0.",
+    "contextCompression": "Context Compression",
+    "contextCompressionDesc": "Long conversations get auto-compressed. Up to 80% token reduction. Zero config needed.",
+    "selfHostReady": "Self-Host Ready",
+    "selfHostReadyDesc": "Docker/K8s. Your infra, your keys, your data. Zero data leaves your network."
+  },
+  "codeTabs": {
+    "title": "Quick Start",
+    "subtitle": "Integrate in under 2 minutes. Use any OpenAI-compatible SDK.",
+    "getApiKey": "Get your API key",
+    "readFullDocs": "Read full docs →",
+    "profileAutoDesc": "UniRo routes intelligently",
+    "profileEcoDesc": "Prioritize cheapest model",
+    "profilePremiumDesc": "Always use the best",
+    "profileBypassDesc": "Bypass routing, use specific model"
+  },
+  "pricing": {
+    "title": "Honest pricing. Your keys, your bills.",
+    "subtitle": "Uniro never marks up tokens. You pay providers directly. Our plans cover the runtime, not the model.",
+    "free": "Solo",
+    "freePeriod": "Forever free",
+    "freeDesc": "Uniro is free for individual developers and open-source maintainers. One machine, every provider, unlimited sessions.",
+    "freeFeatures": [
+      "1K requests/day",
+      "All models available",
+      "Language-aware routing",
+      "Context compression",
+      "Community support"
+    ],
+    "freeCta": "Try Uniro",
+    "pro": "Team",
+    "proPeriod": "Per seat, per month",
+    "proDesc": "Shared policies, pooled budgets, and cross-machine sessions for teams building with agents every day.",
+    "proFeatures": [
+      "Unlimited requests",
+      "All models + open-weight",
+      "Priority routing",
+      "Usage dashboard",
+      "Priority support",
+      "Usage-based token pricing"
+    ],
+    "proCta": "Try Uniro",
+    "enterprise": "Enterprise",
+    "enterprisePeriod": "Priced per deployment",
+    "enterpriseDesc": "Self-hosted runtime with a custom policy engine, VPC routing, and compliance controls for the largest orgs.",
+    "enterpriseFeatures": [
+      "Self-hosted (Docker/K8s)",
+      "Custom routing rules",
+      "Dedicated support",
+      "SSO / SAML",
+      "Data never leaves your network",
+      "Ollama/vLLM integration"
+    ],
+    "enterpriseCta": "Contact us",
+    "footer": "All plans include language-aware routing, context compression, streaming, and fallback chains. You only pay for the tokens LLM providers charge — UniRo adds a small routing fee.",
+    "seeFullPricing": "See full pricing details →"
+  },
+  "pricingPage": {
+    "title": "Pricing",
+    "subtitle": "Pay for what you use. Save more than you spend.",
+    "perModelTitle": "Per-model Token Pricing",
+    "tableModel": "Model",
+    "tableProvider": "Provider",
+    "tableInput": "Input (per 1M tokens)",
+    "tableOutput": "Output (per 1M tokens)",
+    "billingFaqTitle": "Billing FAQ",
+    "billingFaq": [
+      {
+        "q": "What counts as a request?",
+        "a": "Each call to /v1/chat/completions counts as one request, regardless of whether it's streaming or non-streaming."
+      },
+      {
+        "q": "How does token pricing work?",
+        "a": "You pay the underlying LLM provider's token cost plus a small UniRo routing fee (10% of token cost, capped at $0.01 per request)."
+      },
+      {
+        "q": "Can I switch plans?",
+        "a": "Yes, upgrade or downgrade anytime. Pro plan is billed monthly, and changes take effect immediately."
+      },
+      {
+        "q": "Is the Enterprise plan self-hosted only?",
+        "a": "Enterprise supports both cloud and self-hosted deployments. Self-hosted means zero token cost for open-weight models."
+      }
+    ],
+    "footer": "All plans include language-aware routing, context compression, streaming, and fallback chains. You only pay for the tokens LLM providers charge — UniRo adds a small routing fee."
+  },
+  "faq": {
+    "title": "FAQ",
+    "items": [
+      {
+        "q": "How is this different from OpenRouter?",
+        "a": "OpenRouter is a model marketplace — you pick the model manually. UniRo picks the best model FOR you, considering your query complexity, cost, and how efficiently each model handles your language. It's automatic optimization, not manual selection."
+      },
+      {
+        "q": "What does \"language-aware\" mean?",
+        "a": "Different LLMs tokenize non-English text differently. Vietnamese might cost 2x on GPT but only 1.2x on Gemini. UniRo knows these ratios and routes to the cheapest model that still delivers quality — per language, per query."
+      },
+      {
+        "q": "Will it work with my existing code?",
+        "a": "If you use the OpenAI SDK (Python, TypeScript, or any HTTP client), yes. Change the base URL and API key. Everything else — streaming, function calling, tool use — works the same."
+      },
+      {
+        "q": "Can I use my own models?",
+        "a": "Yes. Point UniRo at your Ollama, vLLM, or any OpenAI-compatible endpoint. The router treats local models as first-class citizens with $0 token cost."
+      },
+      {
+        "q": "What about data privacy?",
+        "a": "SaaS mode: requests pass through our servers (we don't log prompt content). Self-hosted mode: everything runs on your infrastructure. Data never leaves your network."
+      },
+      {
+        "q": "How do you make money?",
+        "a": "Small routing fee on top of provider token costs. You save 50-80% on LLM costs; our fee is a fraction of your savings. We only win when you save."
+      },
+      {
+        "q": "Is it production-ready?",
+        "a": "The core routing engine, API, and provider dispatch are built and tested. Language-aware routing (the key differentiator) is actively being developed. Join the beta to get early access."
+      }
+    ]
+  },
+  "docsLanding": {
+    "title": "Documentation",
+    "subtitle": "Everything you need to get started and go to production.",
+    "quickStart": "Quick Start",
+    "quickStartDesc": "Get running in under 2 minutes. Python, TypeScript, cURL.",
+    "apiReference": "API Reference",
+    "apiReferenceDesc": "/v1/chat/completions, /v1/classify, /v1/models. Streaming, auth, errors.",
+    "configuration": "Configuration",
+    "configurationDesc": "Routing profiles, model selection, provider keys, environment variables.",
+    "selfHosting": "Self-Hosting",
+    "selfHostingDesc": "Docker, Kubernetes, Ollama integration, monitoring setup."
+  },
+  "docsPage": {
+    "title": "Documentation",
+    "subtitle": "Everything you need to integrate and deploy UniRo.",
+    "quickStart": "Quick Start",
+    "quickStartDesc": "Get running in under 2 minutes with Python, TypeScript, or cURL.",
+    "apiReference": "API Reference",
+    "apiReferenceDesc": "Full endpoint documentation — /v1/chat/completions, /v1/classify, /v1/models.",
+    "configuration": "Configuration",
+    "configurationDesc": "Environment variables, routing profiles, model aliases, and threshold tuning.",
+    "models": "Models",
+    "modelsDesc": "Supported models, providers, context windows, and aliases.",
+    "selfHosting": "Self-Hosting",
+    "selfHostingDesc": "Docker, Kubernetes, Ollama integration, and monitoring."
+  },
+  "docsSidebar": {
+    "gettingStarted": "Getting Started",
+    "quickStart": "Quick Start",
+    "reference": "Reference",
+    "apiReference": "API Reference",
+    "configuration": "Configuration",
+    "models": "Models",
+    "deployment": "Deployment",
+    "selfHosting": "Self-Hosting"
+  },
+  "footer": {
+    "tagline": "The intelligent LLM router for every language.",
+    "product": "Product",
+    "developers": "Developers",
+    "company": "Company",
+    "features": "Features",
+    "pricing": "Pricing",
+    "chat": "Chat",
+    "docs": "Docs",
+    "apiReference": "API Reference",
+    "quickStart": "Quick Start",
+    "selfHosting": "Self-Hosting",
+    "github": "GitHub",
+    "allRightsReserved": "All rights reserved."
+  },
+  "chat": {
+    "chats": "Chats",
+    "recents": "Recents",
+    "newChat": "New Chat",
+    "newChatTitle": "New chat",
+    "closeSidebar": "Close sidebar",
+    "openSidebar": "Open sidebar",
+    "messages": "messages",
+    "welcomeTitle": "Welcome to UniRo",
+    "welcomeSubtitle": "Intelligent LLM routing — your messages are automatically sent to the best model for the task.",
+    "suggestions": [
+      "Code",
+      "Learn",
+      "Write",
+      "Life stuff",
+      "UniRo's pick"
+    ],
+    "placeholder": "Send a message…",
+    "hint": "UniRo intelligently routes your request to the best model",
+    "shiftEnter": "Shift+Enter for new line",
+    "noResponse": "No response received.",
+    "errorBackend": "Make sure the UniRo backend is running on port 8857.",
+    "modelAuto": "Auto",
+    "modelAutoDesc": "Smart routing",
+    "modelEco": "Eco",
+    "modelEcoDesc": "Maximum savings",
+    "modelPremium": "Premium",
+    "modelPremiumDesc": "Best quality",
+    "modelFree": "Free",
+    "modelFreeDesc": "Local model",
+    "lightMode": "Light",
+    "darkMode": "Dark",
+    "switchToLight": "Switch to light mode",
+    "switchToDark": "Switch to dark mode",
+    "attachImage": "Add Image",
+    "thinkingMode": "Thinking",
+    "useTools": "Tools",
+    "imageAttached": "Image attached",
+    "removeImage": "Remove image"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "ja": "日本語"
+  },
+  "problemCards": {
+    "card1Title": "Most prompts don't need your best model",
+    "card1Desc": "Code formatting, basic questions, simple edits. They don't need your most expensive model — but that's what you're paying for on every call.",
+    "card2Title": "You're blind to where money goes",
+    "card2Desc": "API bills show totals, not breakdowns. You have no idea which prompts cost $0.001 and which cost $0.50.",
+    "card3Title": "Non-English languages cost even more",
+    "card3Desc": "Different models tokenize your language differently. The same sentence costs 3× on one model but only 1.2× on another. No other router accounts for this."
+  },
+  "beforeAfter": {
+    "title": "One line changes everything",
+    "subtitle": "Literally one URL swap. That's it.",
+    "before": "BEFORE",
+    "after": "AFTER",
+    "resultTitle": "Same results. Fraction of the cost.",
+    "resultDesc": "Simple prompts automatically route to cheaper models. Complex ones stay on premium. You save on every call."
+  },
+  "classifierDemo": {
+    "title": "See the classifier decide",
+    "subtitle": "Real prompts. Real routing decisions. No black box.",
+    "footer": "Classification uses sentence embeddings (~10ms overhead). When uncertain, defaults to the complex model. Better to over-serve than under-serve."
+  },
+  "productionFeatures": {
+    "title": "Built for production",
+    "subtitle": "Not a prototype. Ship it with confidence.",
+    "dockerTitle": "Docker + Compose",
+    "dockerDesc": "docker compose up gives you UniRo for a fully local stack. Mount your .env for API keys.",
+    "fallbackTitle": "Fallback Chains",
+    "fallbackDesc": "When a provider returns 429 or 5xx, UniRo cascades through your fallback chain automatically.",
+    "sessionTitle": "Session Persistence",
+    "sessionDesc": "Pins model choice for multi-turn conversations (30min TTL). No jarring mid-thread model switches.",
+    "contextTitle": "Context Window Safety",
+    "contextDesc": "Estimates token count before routing. If prompt exceeds model context, swaps to a larger model.",
+    "compressionTitle": "Context Compression",
+    "compressionDesc": "Long conversations auto-compressed. Up to 80% token reduction with zero quality loss.",
+    "privacyTitle": "Full Privacy",
+    "privacyDesc": "All credentials stay on your machine. No telemetry. No data leaves your network."
+  },
+  "ctaSection": {
+    "title": "Stop overpaying for simple prompts",
+    "subtitle": "Self-host for free, or use our managed API.",
+    "primaryCta": "Get Started Free",
+    "secondaryCta": "Read the Docs"
+  }
+}

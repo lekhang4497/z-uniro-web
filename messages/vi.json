@@ -1,0 +1,338 @@
+{
+  "nav": {
+    "home": "Trang chủ",
+    "chat": "Trò chuyện",
+    "docs": "Tài liệu",
+    "pricing": "Bảng giá",
+    "getStarted": "Bắt đầu"
+  },
+  "hero": {
+    "badge": "Đang beta — API tương thích OpenAI",
+    "titleLine1": "Đúng mô hình. Đúng giá.",
+    "titleLine2": "Mọi lúc.",
+    "subtitle": "Router LLM duy nhất chọn mô hình rẻ nhất mà vẫn tốt — cho câu hỏi của bạn, bằng ngôn ngữ của bạn. Thay thế OpenAI chỉ cần đổi URL.",
+    "ctaPrimary": "Trò chuyện ngay",
+    "ctaSecondary": "Đọc tài liệu →",
+    "codeComment": "# Đổi 2 dòng. Vậy thôi."
+  },
+  "trustBar": {
+    "costSavings": "Tiết kiệm chi phí",
+    "routingOverhead": "Độ trễ routing",
+    "llmProviders": "Nhà cung cấp LLM",
+    "toIntegrate": "Để tích hợp"
+  },
+  "howItWorks": {
+    "title": "Cách hoạt động",
+    "subtitle": "Ba bước. Không cần thay đổi code ngoài URL.",
+    "step1Title": "Bạn gửi yêu cầu",
+    "step1Desc": "Dùng OpenAI SDK. Trỏ đến UniRo. Xong.",
+    "step2Title": "UniRo chọn mô hình tốt nhất",
+    "step2Desc": "Chúng tôi xem xét ba yếu tố mà các router khác bỏ qua:",
+    "step2Complexity": "Độ phức tạp",
+    "step2ComplexityText": "Câu hỏi này khó đến mức nào?",
+    "step2Cost": "Chi phí",
+    "step2CostText": "Giá thực tế cho mỗi mô hình",
+    "step2Language": "Ngôn ngữ",
+    "step2LanguageText": "Mô hình NÀY dùng bao nhiêu token cho ngôn ngữ CỦA BẠN?",
+    "step2Footer": "Đây là điều khiến chúng tôi khác biệt với mọi router khác.",
+    "step3Title": "Phản hồi được trả về",
+    "step3Desc": "Cùng định dạng với OpenAI. Code của bạn không thay đổi.",
+    "step4Title": "Xem tiền của bạn đi đâu",
+    "step4Desc": "Log yêu cầu đầy đủ, chi phí theo mô hình, theo dõi độ trễ. Biết tính năng nào tốn kém trước khi hóa đơn đến."
+  },
+  "languageProblem": {
+    "titleStart": "Ngôn ngữ của bạn tốn kém hơn. ",
+    "titleHighlight": "Chúng tôi giải quyết điều đó.",
+    "para1Start": "Các LLM sử dụng tokenizer khác nhau. Cùng một câu tiếng Việt sử dụng ",
+    "para1Bold": "gấp 2-3 lần token",
+    "para1End": " so với tiếng Anh.",
+    "para2Start": "Nhưng đây là điều không ai nói đến: mỗi mô hình có một ",
+    "para2Bold": "tokenizer khác nhau",
+    "para2End": ". Nên Mô hình A có thể rẻ hơn 3 lần Mô hình B cho tiếng Việt — nhưng lại đắt hơn cho tiếng Anh.",
+    "para3": "Không router nào tính đến điều này. Chúng tôi có.",
+    "tokenBoxTitle": "Cùng ý nghĩa, khác số token",
+    "tokenEnglish": "Tiếng Anh: \"What is machine learning?\"",
+    "tokenEnglishCount": "5 token",
+    "tokenVietnamese": "Tiếng Việt: \"Học máy là gì?\"",
+    "tokenVietnameseCount": "11 token (2.2x)",
+    "tokenJapanese": "Tiếng Nhật: \"機械学習とは？\"",
+    "tokenJapaneseCount": "14 token (2.8x)",
+    "tableTitle": "Cùng đoạn văn tiếng Việt — mỗi mô hình tính phí khác nhau",
+    "tableModel": "Mô hình",
+    "tableTokens": "Token",
+    "tablePricePerM": "$/M",
+    "tableEffective": "Thực tế",
+    "tableFooterStart": "Gemini Flash ",
+    "tableFooterHighlight": "rẻ hơn 18 lần",
+    "tableFooterEnd": " so với GPT-5.4 cho đoạn văn này."
+  },
+  "features": {
+    "title": "Mọi thứ bạn cần để cắt giảm chi phí LLM",
+    "subtitle": "Thay thế trực tiếp. Tiết kiệm ngay. Không bị khóa.",
+    "languageAwareRouting": "Routing theo ngôn ngữ",
+    "languageAwareRoutingDesc": "Chọn mô hình rẻ nhất phù hợp cho ngôn ngữ CỦA BẠN. Không chỉ độ phức tạp — mà là bức tranh toàn diện.",
+    "costSavings": "Tiết kiệm 50-80%",
+    "costSavingsDesc": "Routing thông minh + nén. Tiết kiệm thực từ tối ưu thực, không phải con số marketing.",
+    "dropInCompatible": "Tương thích hoàn toàn",
+    "dropInCompatibleDesc": "API tương thích OpenAI. Hoạt động với Claude Code, VSCode, LangChain. Chỉ đổi 2 dòng code.",
+    "openWeightModels": "Mô hình mở",
+    "openWeightModelsDesc": "Ollama, vLLM, mọi endpoint tương thích OpenAI. Route câu hỏi đơn giản về local với $0.",
+    "contextCompression": "Nén ngữ cảnh",
+    "contextCompressionDesc": "Cuộc hội thoại dài được tự động nén. Giảm đến 80% token. Không cần cấu hình.",
+    "selfHostReady": "Sẵn sàng tự host",
+    "selfHostReadyDesc": "Docker/K8s. Hạ tầng của bạn, key của bạn, dữ liệu của bạn. Không dữ liệu nào rời mạng của bạn."
+  },
+  "codeTabs": {
+    "title": "Bắt đầu nhanh",
+    "subtitle": "Tích hợp trong chưa đầy 2 phút. Dùng bất kỳ SDK tương thích OpenAI.",
+    "getApiKey": "Lấy API key của bạn",
+    "readFullDocs": "Đọc toàn bộ tài liệu →",
+    "profileAutoDesc": "UniRo route thông minh",
+    "profileEcoDesc": "Ưu tiên mô hình rẻ nhất",
+    "profilePremiumDesc": "Luôn dùng mô hình tốt nhất",
+    "profileBypassDesc": "Bỏ qua routing, dùng mô hình cụ thể"
+  },
+  "pricing": {
+    "title": "Bảng giá đơn giản, minh bạch",
+    "subtitle": "Trả theo sử dụng. Tiết kiệm nhiều hơn chi phí.",
+    "free": "Miễn phí",
+    "freePeriod": "mãi mãi",
+    "freeDesc": "Tuyệt vời để thử nghiệm",
+    "freeFeatures": [
+      "1K yêu cầu/ngày",
+      "Tất cả mô hình",
+      "Routing theo ngôn ngữ",
+      "Nén ngữ cảnh",
+      "Hỗ trợ cộng đồng"
+    ],
+    "freeCta": "Bắt đầu miễn phí",
+    "pro": "Pro",
+    "proPeriod": "/tháng",
+    "proDesc": "Cho đội ngũ phát triển sản phẩm AI",
+    "proFeatures": [
+      "Yêu cầu không giới hạn",
+      "Tất cả mô hình + mô hình mở",
+      "Routing ưu tiên",
+      "Bảng điều khiển sử dụng",
+      "Hỗ trợ ưu tiên",
+      "Giá token theo sử dụng"
+    ],
+    "proCta": "Dùng Pro",
+    "enterprise": "Doanh nghiệp",
+    "enterprisePeriod": "",
+    "enterpriseDesc": "Triển khai tại chỗ",
+    "enterpriseFeatures": [
+      "Tự host (Docker/K8s)",
+      "Quy tắc routing tùy chỉnh",
+      "Hỗ trợ chuyên dụng",
+      "SSO / SAML",
+      "Dữ liệu không rời mạng của bạn",
+      "Tích hợp Ollama/vLLM"
+    ],
+    "enterpriseCta": "Liên hệ",
+    "footer": "Tất cả gói đều bao gồm routing theo ngôn ngữ, nén ngữ cảnh, streaming và chuỗi dự phòng. Bạn chỉ trả chi phí token cho nhà cung cấp LLM — UniRo thêm một khoản phí routing nhỏ.",
+    "seeFullPricing": "Xem chi tiết bảng giá →"
+  },
+  "pricingPage": {
+    "title": "Bảng giá",
+    "subtitle": "Trả theo sử dụng. Tiết kiệm nhiều hơn chi phí.",
+    "perModelTitle": "Giá token theo mô hình",
+    "tableModel": "Mô hình",
+    "tableProvider": "Nhà cung cấp",
+    "tableInput": "Đầu vào (mỗi 1M token)",
+    "tableOutput": "Đầu ra (mỗi 1M token)",
+    "billingFaqTitle": "Câu hỏi về thanh toán",
+    "billingFaq": [
+      {
+        "q": "Yêu cầu được tính như thế nào?",
+        "a": "Mỗi lần gọi /v1/chat/completions được tính là một yêu cầu, bất kể streaming hay non-streaming."
+      },
+      {
+        "q": "Giá token hoạt động như thế nào?",
+        "a": "Bạn trả chi phí token của nhà cung cấp LLM cộng thêm phí routing nhỏ của UniRo (10% chi phí token, tối đa $0.01 mỗi yêu cầu)."
+      },
+      {
+        "q": "Tôi có thể đổi gói không?",
+        "a": "Có, nâng cấp hoặc hạ cấp bất cứ lúc nào. Gói Pro tính phí hàng tháng và thay đổi có hiệu lực ngay lập tức."
+      },
+      {
+        "q": "Gói Doanh nghiệp chỉ hỗ trợ tự host?",
+        "a": "Gói Doanh nghiệp hỗ trợ cả triển khai đám mây và tự host. Tự host nghĩa là chi phí token $0 cho mô hình mở."
+      }
+    ],
+    "footer": "Tất cả gói đều bao gồm routing theo ngôn ngữ, nén ngữ cảnh, streaming và chuỗi dự phòng. Bạn chỉ trả chi phí token cho nhà cung cấp LLM — UniRo thêm một khoản phí routing nhỏ."
+  },
+  "faq": {
+    "title": "Câu hỏi thường gặp",
+    "items": [
+      {
+        "q": "UniRo khác OpenRouter như thế nào?",
+        "a": "OpenRouter là marketplace mô hình — bạn tự chọn mô hình. UniRo chọn mô hình tốt nhất CHO bạn, xem xét độ phức tạp, chi phí và hiệu quả của mỗi mô hình với ngôn ngữ của bạn. Đây là tối ưu tự động, không phải chọn thủ công."
+      },
+      {
+        "q": "\"Nhận biết ngôn ngữ\" nghĩa là gì?",
+        "a": "Các LLM khác nhau tokenize văn bản không phải tiếng Anh khác nhau. Tiếng Việt có thể tốn gấp 2 lần trên GPT nhưng chỉ 1.2 lần trên Gemini. UniRo biết các tỷ lệ này và route đến mô hình rẻ nhất vẫn đảm bảo chất lượng — theo từng ngôn ngữ, từng câu hỏi."
+      },
+      {
+        "q": "UniRo có hoạt động với code hiện tại không?",
+        "a": "Nếu bạn dùng OpenAI SDK (Python, TypeScript, hoặc bất kỳ HTTP client nào), có. Chỉ cần đổi base URL và API key. Mọi thứ khác — streaming, function calling, tool use — hoạt động như cũ."
+      },
+      {
+        "q": "Tôi có thể dùng mô hình riêng không?",
+        "a": "Có. Trỏ UniRo đến Ollama, vLLM, hoặc bất kỳ endpoint tương thích OpenAI. Router coi mô hình local là đối tượng hàng đầu với chi phí token $0."
+      },
+      {
+        "q": "Còn về bảo mật dữ liệu?",
+        "a": "Chế độ SaaS: yêu cầu đi qua server của chúng tôi (chúng tôi không ghi log nội dung prompt). Chế độ tự host: mọi thứ chạy trên hạ tầng của bạn. Dữ liệu không bao giờ rời mạng của bạn."
+      },
+      {
+        "q": "UniRo kiếm tiền như thế nào?",
+        "a": "Phí routing nhỏ trên chi phí token nhà cung cấp. Bạn tiết kiệm 50-80% chi phí LLM; phí của chúng tôi chỉ là một phần nhỏ khoản tiết kiệm. Chúng tôi chỉ thắng khi bạn tiết kiệm."
+      },
+      {
+        "q": "Đã sẵn sàng cho production chưa?",
+        "a": "Engine routing cốt lõi, API và dispatch provider đã được xây dựng và kiểm thử. Routing theo ngôn ngữ (yếu tố khác biệt chính) đang được phát triển. Tham gia beta để được truy cập sớm."
+      }
+    ]
+  },
+  "docsLanding": {
+    "title": "Tài liệu",
+    "subtitle": "Mọi thứ bạn cần để bắt đầu và đưa ra production.",
+    "quickStart": "Bắt đầu nhanh",
+    "quickStartDesc": "Chạy trong chưa đầy 2 phút. Python, TypeScript, cURL.",
+    "apiReference": "Tham chiếu API",
+    "apiReferenceDesc": "/v1/chat/completions, /v1/classify, /v1/models. Streaming, xác thực, lỗi.",
+    "configuration": "Cấu hình",
+    "configurationDesc": "Profile routing, chọn mô hình, key provider, biến môi trường.",
+    "selfHosting": "Tự host",
+    "selfHostingDesc": "Docker, Kubernetes, tích hợp Ollama, thiết lập giám sát."
+  },
+  "docsPage": {
+    "title": "Tài liệu",
+    "subtitle": "Mọi thứ bạn cần để tích hợp và triển khai UniRo.",
+    "quickStart": "Bắt đầu nhanh",
+    "quickStartDesc": "Chạy trong chưa đầy 2 phút với Python, TypeScript, hoặc cURL.",
+    "apiReference": "Tham chiếu API",
+    "apiReferenceDesc": "Tài liệu endpoint đầy đủ — /v1/chat/completions, /v1/classify, /v1/models.",
+    "configuration": "Cấu hình",
+    "configurationDesc": "Biến môi trường, profile routing, alias mô hình và điều chỉnh ngưỡng.",
+    "models": "Mô hình",
+    "modelsDesc": "Mô hình hỗ trợ, nhà cung cấp, cửa sổ ngữ cảnh và alias.",
+    "selfHosting": "Tự host",
+    "selfHostingDesc": "Docker, Kubernetes, tích hợp Ollama và giám sát."
+  },
+  "docsSidebar": {
+    "gettingStarted": "Bắt đầu",
+    "quickStart": "Bắt đầu nhanh",
+    "reference": "Tham chiếu",
+    "apiReference": "Tham chiếu API",
+    "configuration": "Cấu hình",
+    "models": "Mô hình",
+    "deployment": "Triển khai",
+    "selfHosting": "Tự host"
+  },
+  "footer": {
+    "tagline": "Router LLM thông minh cho mọi ngôn ngữ.",
+    "product": "Sản phẩm",
+    "developers": "Nhà phát triển",
+    "company": "Công ty",
+    "features": "Tính năng",
+    "pricing": "Bảng giá",
+    "chat": "Trò chuyện",
+    "docs": "Tài liệu",
+    "apiReference": "Tham chiếu API",
+    "quickStart": "Bắt đầu nhanh",
+    "selfHosting": "Tự host",
+    "github": "GitHub",
+    "allRightsReserved": "Đã đăng ký bản quyền."
+  },
+  "chat": {
+    "chats": "Cuộc trò chuyện",
+    "recents": "Gần đây",
+    "newChat": "Cuộc trò chuyện mới",
+    "newChatTitle": "Trò chuyện mới",
+    "closeSidebar": "Đóng thanh bên",
+    "openSidebar": "Mở thanh bên",
+    "messages": "tin nhắn",
+    "welcomeTitle": "Chào mừng đến UniRo",
+    "welcomeSubtitle": "Routing LLM thông minh — tin nhắn của bạn được tự động gửi đến mô hình tốt nhất cho tác vụ.",
+    "suggestions": [
+      "Lập trình",
+      "Học hỏi",
+      "Viết lách",
+      "Cuộc sống",
+      "UniRo chọn"
+    ],
+    "placeholder": "Tôi có thể giúp gì cho bạn?",
+    "hint": "UniRo thông minh route yêu cầu của bạn đến mô hình tốt nhất",
+    "shiftEnter": "Shift+Enter để xuống dòng",
+    "noResponse": "Không nhận được phản hồi.",
+    "errorBackend": "Hãy đảm bảo backend UniRo đang chạy trên cổng 8857.",
+    "modelAuto": "Tự động",
+    "modelAutoDesc": "Routing thông minh",
+    "modelEco": "Tiết kiệm",
+    "modelEcoDesc": "Tiết kiệm tối đa",
+    "modelPremium": "Cao cấp",
+    "modelPremiumDesc": "Chất lượng tốt nhất",
+    "modelFree": "Miễn phí",
+    "modelFreeDesc": "Mô hình cục bộ",
+    "lightMode": "Sáng",
+    "darkMode": "Tối",
+    "switchToLight": "Chuyển sang chế độ sáng",
+    "switchToDark": "Chuyển sang chế độ tối",
+    "attachImage": "Thêm ảnh",
+    "thinkingMode": "Suy nghĩ",
+    "useTools": "Công cụ",
+    "imageAttached": "Đã đính kèm ảnh",
+    "removeImage": "Xóa ảnh"
+  },
+  "language": {
+    "label": "Ngôn ngữ",
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "ja": "日本語"
+  },
+  "problemCards": {
+    "card1Title": "Hầu hết prompt không cần mô hình tốt nhất",
+    "card1Desc": "Format code, câu hỏi cơ bản, chỉnh sửa đơn giản. Chúng không cần mô hình đắt nhất — nhưng đó là thứ bạn đang trả cho mọi lần gọi.",
+    "card2Title": "Bạn không biết tiền đi đâu",
+    "card2Desc": "Hóa đơn API chỉ hiển tổng, không chi tiết. Bạn không biết prompt nào tốn $0.001 và prompt nào tốn $0.50.",
+    "card3Title": "Ngôn ngữ không phải tiếng Anh tốn hơn",
+    "card3Desc": "Các mô hình tokenize ngôn ngữ của bạn khác nhau. Cùng một câu tốn gấp 3 lần trên mô hình này nhưng chỉ 1.2 lần trên mô hình khác."
+  },
+  "beforeAfter": {
+    "title": "Một dòng thay đổi tất cả",
+    "subtitle": "Chỉ cần đổi một URL. Vậy thôi.",
+    "before": "TRƯỚC",
+    "after": "SAU",
+    "resultTitle": "Cùng kết quả. Chi phí thấp hơn nhiều.",
+    "resultDesc": "Prompt đơn giản tự động route đến mô hình rẻ hơn. Prompt phức tạp vẫn dùng premium. Bạn tiết kiệm mỗi lần gọi."
+  },
+  "classifierDemo": {
+    "title": "Xem classifier quyết định",
+    "subtitle": "Prompt thật. Quyết định routing thật. Không hộp đen.",
+    "footer": "Phân loại dùng sentence embeddings (~10ms). Khi không chắc chắn, mặc định chọn mô hình phức tạp."
+  },
+  "productionFeatures": {
+    "title": "Sẵn sàng cho production",
+    "subtitle": "Không phải prototype. Triển khai với tự tin.",
+    "dockerTitle": "Docker + Compose",
+    "dockerDesc": "docker compose up cho bạn UniRo cho stack hoàn toàn local.",
+    "fallbackTitle": "Chuỗi dự phòng",
+    "fallbackDesc": "Khi provider trả về 429 hoặc 5xx, UniRo tự động chuyển qua chuỗi dự phòng.",
+    "sessionTitle": "Lưu phiên",
+    "sessionDesc": "Giữ mô hình cho cuộc hội thoại nhiều lượt (TTL 30 phút).",
+    "contextTitle": "An toàn cửa sổ ngữ cảnh",
+    "contextDesc": "Ước lượng token trước khi routing. Nếu vượt context, chuyển sang mô hình lớn hơn.",
+    "compressionTitle": "Nén ngữ cảnh",
+    "compressionDesc": "Hội thoại dài tự động nén. Giảm đến 80% token.",
+    "privacyTitle": "Bảo mật toàn diện",
+    "privacyDesc": "Mọi thông tin xác thực nằm trên máy bạn. Không telemetry. Dữ liệu không rời mạng."
+  },
+  "ctaSection": {
+    "title": "Ngừng trả thừa cho prompt đơn giản",
+    "subtitle": "Tự host miễn phí, hoặc dùng API quản lý của chúng tôi.",
+    "primaryCta": "Bắt đầu miễn phí",
+    "secondaryCta": "Đọc tài liệu"
+  }
+}

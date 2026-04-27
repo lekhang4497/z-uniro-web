@@ -1,0 +1,338 @@
+{
+  "nav": {
+    "home": "ホーム",
+    "chat": "チャット",
+    "docs": "ドキュメント",
+    "pricing": "料金",
+    "getStarted": "始める"
+  },
+  "hero": {
+    "badge": "ベータ版 — OpenAI互換API",
+    "titleLine1": "最適なモデル。最適な価格。",
+    "titleLine2": "いつでも。",
+    "subtitle": "あなたのクエリとあなたの言語に最適な最安モデルを選ぶ、唯一のLLMルーター。OpenAIのドロップイン代替。",
+    "ctaPrimary": "チャットする",
+    "ctaSecondary": "ドキュメントを読む →",
+    "codeComment": "# 2行変えるだけ。それだけ。"
+  },
+  "trustBar": {
+    "costSavings": "コスト削減",
+    "routingOverhead": "ルーティング遅延",
+    "llmProviders": "LLMプロバイダー",
+    "toIntegrate": "統合に必要"
+  },
+  "howItWorks": {
+    "title": "仕組み",
+    "subtitle": "3ステップ。URL以外のコード変更不要。",
+    "step1Title": "リクエストを送信",
+    "step1Desc": "OpenAI SDKを使用。UniRoに向けるだけ。完了。",
+    "step2Title": "UniRoが最適なモデルを選択",
+    "step2Desc": "他のルーターが無視する3つの要素を見ます：",
+    "step2Complexity": "複雑さ",
+    "step2ComplexityText": "このクエリはどれくらい難しい？",
+    "step2Cost": "コスト",
+    "step2CostText": "各モデルの実際の価格",
+    "step2Language": "言語",
+    "step2LanguageText": "このモデルはあなたの言語で何トークン使う？",
+    "step2Footer": "これが他のすべてのルーターとの違いです。",
+    "step3Title": "レスポンスがストリーム返却",
+    "step3Desc": "OpenAIと同じフォーマット。コードは変わりません。",
+    "step4Title": "お金の行き先を正確に把握",
+    "step4Desc": "完全なリクエストログ、モデルごとのコスト、レイテンシー追跡。"
+  },
+  "languageProblem": {
+    "titleStart": "あなたの言語はより高い。",
+    "titleHighlight": "私たちが解決します。",
+    "para1Start": "LLMは異なるトークナイザーを使用します。同じベトナム語の文は英語より",
+    "para1Bold": "2〜3倍のトークン",
+    "para1End": "を使用します。",
+    "para2Start": "しかし誰も語らないことがあります：各モデルには",
+    "para2Bold": "異なるトークナイザー",
+    "para2End": "があります。モデルAはベトナム語でモデルBより3倍安い場合がありますが、英語では逆に高くなることも。",
+    "para3": "これを考慮するルーターは他にありません。私たちは考慮します。",
+    "tokenBoxTitle": "同じ意味、異なるトークン数",
+    "tokenEnglish": "英語: \"What is machine learning?\"",
+    "tokenEnglishCount": "5トークン",
+    "tokenVietnamese": "ベトナム語: \"Học máy là gì?\"",
+    "tokenVietnameseCount": "11トークン (2.2x)",
+    "tokenJapanese": "日本語: \"機械学習とは？\"",
+    "tokenJapaneseCount": "14トークン (2.8x)",
+    "tableTitle": "同じベトナム語の段落 — モデルごとに料金が異なる",
+    "tableModel": "モデル",
+    "tableTokens": "トークン",
+    "tablePricePerM": "$/M",
+    "tableEffective": "実効",
+    "tableFooterStart": "Gemini Flashは",
+    "tableFooterHighlight": "18倍安い",
+    "tableFooterEnd": "（GPT-5.4比、このテキストの場合）。"
+  },
+  "features": {
+    "title": "LLMコスト削減に必要なすべて",
+    "subtitle": "ドロップイン代替。即座に節約。ロックインなし。",
+    "languageAwareRouting": "言語対応ルーティング",
+    "languageAwareRoutingDesc": "あなたの言語に最適な最安モデルを選択。複雑さだけでなく、全体像を見ます。",
+    "costSavings": "50〜80%コスト削減",
+    "costSavingsDesc": "スマートルーティング＋圧縮。マーケティング数字ではなく、実際の最適化による実際の節約。",
+    "dropInCompatible": "ドロップイン互換",
+    "dropInCompatibleDesc": "OpenAI互換API。Claude Code、VSCode、LangChainで動作。コード2行を変更するだけ。",
+    "openWeightModels": "オープンウェイトモデル",
+    "openWeightModelsDesc": "Ollama、vLLM、任意のOpenAI互換エンドポイント。シンプルなクエリをローカルで$0でルーティング。",
+    "contextCompression": "コンテキスト圧縮",
+    "contextCompressionDesc": "長い会話は自動圧縮。最大80%のトークン削減。設定不要。",
+    "selfHostReady": "セルフホスト対応",
+    "selfHostReadyDesc": "Docker/K8s。あなたのインフラ、あなたの鍵、あなたのデータ。データはネットワーク外に出ません。"
+  },
+  "codeTabs": {
+    "title": "クイックスタート",
+    "subtitle": "2分以内で統合。任意のOpenAI互換SDKを使用。",
+    "getApiKey": "APIキーを取得",
+    "readFullDocs": "完全なドキュメントを読む →",
+    "profileAutoDesc": "UniRoがインテリジェントにルーティング",
+    "profileEcoDesc": "最安モデルを優先",
+    "profilePremiumDesc": "常に最高品質を使用",
+    "profileBypassDesc": "ルーティングをバイパス、特定モデルを使用"
+  },
+  "pricing": {
+    "title": "シンプルで透明な料金",
+    "subtitle": "使った分だけ支払い。支出以上に節約。",
+    "free": "無料",
+    "freePeriod": "永久",
+    "freeDesc": "お試しに最適",
+    "freeFeatures": [
+      "1K リクエスト/日",
+      "全モデル利用可能",
+      "言語対応ルーティング",
+      "コンテキスト圧縮",
+      "コミュニティサポート"
+    ],
+    "freeCta": "無料で始める",
+    "pro": "Pro",
+    "proPeriod": "/月",
+    "proDesc": "AI製品を開発するチーム向け",
+    "proFeatures": [
+      "無制限リクエスト",
+      "全モデル＋オープンウェイト",
+      "優先ルーティング",
+      "使用量ダッシュボード",
+      "優先サポート",
+      "使用量ベースのトークン料金"
+    ],
+    "proCta": "Proを取得",
+    "enterprise": "エンタープライズ",
+    "enterprisePeriod": "",
+    "enterpriseDesc": "オンプレミス展開",
+    "enterpriseFeatures": [
+      "セルフホスト (Docker/K8s)",
+      "カスタムルーティングルール",
+      "専用サポート",
+      "SSO / SAML",
+      "データはネットワーク外に出ません",
+      "Ollama/vLLM統合"
+    ],
+    "enterpriseCta": "お問い合わせ",
+    "footer": "すべてのプランに言語対応ルーティング、コンテキスト圧縮、ストリーミング、フォールバックチェーンが含まれます。LLMプロバイダーが請求するトークン料金のみ支払い — UniRoは小さなルーティング手数料を追加します。",
+    "seeFullPricing": "料金の詳細を見る →"
+  },
+  "pricingPage": {
+    "title": "料金",
+    "subtitle": "使った分だけ支払い。支出以上に節約。",
+    "perModelTitle": "モデルごとのトークン料金",
+    "tableModel": "モデル",
+    "tableProvider": "プロバイダー",
+    "tableInput": "入力 (100万トークンあたり)",
+    "tableOutput": "出力 (100万トークンあたり)",
+    "billingFaqTitle": "請求に関するFAQ",
+    "billingFaq": [
+      {
+        "q": "リクエストとは何ですか？",
+        "a": "/v1/chat/completionsへの各呼び出しが1リクエストとしてカウントされます（ストリーミングか非ストリーミングかは問いません）。"
+      },
+      {
+        "q": "トークン料金はどのように機能しますか？",
+        "a": "LLMプロバイダーのトークンコストに加え、小さなUniRoルーティング手数料（トークンコストの10%、1リクエストあたり最大$0.01）をお支払いいただきます。"
+      },
+      {
+        "q": "プランを変更できますか？",
+        "a": "はい、いつでもアップグレードまたはダウングレードできます。Proプランは月額課金で、変更は即座に反映されます。"
+      },
+      {
+        "q": "エンタープライズプランはセルフホストのみですか？",
+        "a": "エンタープライズはクラウドとセルフホストの両方をサポートしています。セルフホストではオープンウェイトモデルのトークンコストが$0になります。"
+      }
+    ],
+    "footer": "すべてのプランに言語対応ルーティング、コンテキスト圧縮、ストリーミング、フォールバックチェーンが含まれます。LLMプロバイダーが請求するトークン料金のみ支払い — UniRoは小さなルーティング手数料を追加します。"
+  },
+  "faq": {
+    "title": "よくある質問",
+    "items": [
+      {
+        "q": "OpenRouterとどう違いますか？",
+        "a": "OpenRouterはモデルのマーケットプレイスで、自分でモデルを選びます。UniRoはクエリの複雑さ、コスト、各モデルがあなたの言語をどれだけ効率的に処理するかを考慮して、最適なモデルを自動的に選びます。手動選択ではなく、自動最適化です。"
+      },
+      {
+        "q": "「言語対応」とはどういう意味ですか？",
+        "a": "異なるLLMは非英語テキストを異なる方法でトークナイズします。ベトナム語はGPTで2倍かかるかもしれませんが、Geminiでは1.2倍だけです。UniRoはこれらの比率を把握し、品質を維持しながら最安のモデルにルーティングします — 言語ごと、クエリごとに。"
+      },
+      {
+        "q": "既存のコードで動作しますか？",
+        "a": "OpenAI SDK（Python、TypeScript、または任意のHTTPクライアント）を使用している場合、はい。ベースURLとAPIキーを変更するだけです。ストリーミング、ファンクションコール、ツール使用など、すべて同じように動作します。"
+      },
+      {
+        "q": "自分のモデルを使えますか？",
+        "a": "はい。UniRoをOllama、vLLM、または任意のOpenAI互換エンドポイントに向けてください。ルーターはローカルモデルをトークンコスト$0のファーストクラスとして扱います。"
+      },
+      {
+        "q": "データプライバシーについては？",
+        "a": "SaaSモード：リクエストは当社サーバーを経由します（プロンプト内容のログは記録しません）。セルフホストモード：すべてがあなたのインフラ上で実行されます。データはネットワーク外に出ません。"
+      },
+      {
+        "q": "どうやって収益を得ていますか？",
+        "a": "プロバイダーのトークンコストに対する小さなルーティング手数料です。LLMコストの50〜80%を節約でき、当社の手数料はその節約のごく一部です。あなたが節約した時だけ、私たちも利益を得ます。"
+      },
+      {
+        "q": "本番環境で使えますか？",
+        "a": "コアルーティングエンジン、API、プロバイダーディスパッチは構築・テスト済みです。言語対応ルーティング（主要な差別化要因）は現在開発中です。ベータに参加して早期アクセスを取得してください。"
+      }
+    ]
+  },
+  "docsLanding": {
+    "title": "ドキュメント",
+    "subtitle": "開始から本番環境まで必要なすべて。",
+    "quickStart": "クイックスタート",
+    "quickStartDesc": "2分以内で実行。Python、TypeScript、cURL。",
+    "apiReference": "APIリファレンス",
+    "apiReferenceDesc": "/v1/chat/completions, /v1/classify, /v1/models。ストリーミング、認証、エラー。",
+    "configuration": "設定",
+    "configurationDesc": "ルーティングプロファイル、モデル選択、プロバイダーキー、環境変数。",
+    "selfHosting": "セルフホスト",
+    "selfHostingDesc": "Docker、Kubernetes、Ollama統合、モニタリング設定。"
+  },
+  "docsPage": {
+    "title": "ドキュメント",
+    "subtitle": "UniRoの統合とデプロイに必要なすべて。",
+    "quickStart": "クイックスタート",
+    "quickStartDesc": "Python、TypeScript、またはcURLで2分以内に実行。",
+    "apiReference": "APIリファレンス",
+    "apiReferenceDesc": "完全なエンドポイントドキュメント — /v1/chat/completions, /v1/classify, /v1/models。",
+    "configuration": "設定",
+    "configurationDesc": "環境変数、ルーティングプロファイル、モデルエイリアス、閾値調整。",
+    "models": "モデル",
+    "modelsDesc": "対応モデル、プロバイダー、コンテキストウィンドウ、エイリアス。",
+    "selfHosting": "セルフホスト",
+    "selfHostingDesc": "Docker、Kubernetes、Ollama統合、モニタリング。"
+  },
+  "docsSidebar": {
+    "gettingStarted": "はじめに",
+    "quickStart": "クイックスタート",
+    "reference": "リファレンス",
+    "apiReference": "APIリファレンス",
+    "configuration": "設定",
+    "models": "モデル",
+    "deployment": "デプロイ",
+    "selfHosting": "セルフホスト"
+  },
+  "footer": {
+    "tagline": "すべての言語のためのインテリジェントLLMルーター。",
+    "product": "製品",
+    "developers": "開発者",
+    "company": "会社",
+    "features": "機能",
+    "pricing": "料金",
+    "chat": "チャット",
+    "docs": "ドキュメント",
+    "apiReference": "APIリファレンス",
+    "quickStart": "クイックスタート",
+    "selfHosting": "セルフホスト",
+    "github": "GitHub",
+    "allRightsReserved": "All rights reserved."
+  },
+  "chat": {
+    "chats": "チャット一覧",
+    "recents": "最近",
+    "newChat": "新しいチャット",
+    "newChatTitle": "新しいチャット",
+    "closeSidebar": "サイドバーを閉じる",
+    "openSidebar": "サイドバーを開く",
+    "messages": "メッセージ",
+    "welcomeTitle": "UniRoへようこそ",
+    "welcomeSubtitle": "インテリジェントLLMルーティング — メッセージは自動的にタスクに最適なモデルに送信されます。",
+    "suggestions": [
+      "コード",
+      "学ぶ",
+      "書く",
+      "日常のこと",
+      "UniRoにおまかせ"
+    ],
+    "placeholder": "何かお手伝いできますか？",
+    "hint": "UniRoがリクエストを最適なモデルにインテリジェントにルーティング",
+    "shiftEnter": "Shift+Enterで改行",
+    "noResponse": "レスポンスを受信できませんでした。",
+    "errorBackend": "UniRoバックエンドがポート8857で実行されていることを確認してください。",
+    "modelAuto": "自動",
+    "modelAutoDesc": "スマートルーティング",
+    "modelEco": "エコ",
+    "modelEcoDesc": "最大限の節約",
+    "modelPremium": "プレミアム",
+    "modelPremiumDesc": "最高品質",
+    "modelFree": "無料",
+    "modelFreeDesc": "ローカルモデル",
+    "lightMode": "ライト",
+    "darkMode": "ダーク",
+    "switchToLight": "ライトモードに切り替え",
+    "switchToDark": "ダークモードに切り替え",
+    "attachImage": "画像を追加",
+    "thinkingMode": "思考",
+    "useTools": "ツール",
+    "imageAttached": "画像が添付されました",
+    "removeImage": "画像を削除"
+  },
+  "language": {
+    "label": "言語",
+    "en": "English",
+    "vi": "Tiếng Việt",
+    "ja": "日本語"
+  },
+  "problemCards": {
+    "card1Title": "ほとんどのプロンプトに最高モデルは不要",
+    "card1Desc": "コードフォーマット、基本的な質問、簡単な編集。最も高価なモデルは不要ですが、それにお金を払っています。",
+    "card2Title": "お金の行き先が見えない",
+    "card2Desc": "API請求書は合計のみ。どのプロンプトが$0.001でどれが$0.50か分かりません。",
+    "card3Title": "英語以外はさらに高コスト",
+    "card3Desc": "同じ文があるモデルで3倍、別のモデルで1.2倍。これを考慮するルーターは他にありません。"
+  },
+  "beforeAfter": {
+    "title": "1行ですべてが変わる",
+    "subtitle": "URLを1つ変えるだけ。それだけ。",
+    "before": "変更前",
+    "after": "変更後",
+    "resultTitle": "同じ結果。コストは激減。",
+    "resultDesc": "シンプルなプロンプトは自動で安いモデルへ。複雑なものはプレミアムのまま。"
+  },
+  "classifierDemo": {
+    "title": "クラシファイアの判断を見る",
+    "subtitle": "実際のプロンプト。実際のルーティング判断。ブラックボックスなし。",
+    "footer": "分類は文埋め込みを使用（~10msオーバーヘッド）。不確実な場合、複雑モデルをデフォルトに。"
+  },
+  "productionFeatures": {
+    "title": "本番環境対応",
+    "subtitle": "プロトタイプではありません。自信を持ってデプロイ。",
+    "dockerTitle": "Docker + Compose",
+    "dockerDesc": "docker compose upでUniRoをローカルスタックで起動。",
+    "fallbackTitle": "フォールバックチェーン",
+    "fallbackDesc": "429や3xx時、自動でフォールバックチェーンを実行。",
+    "sessionTitle": "セッション永続性",
+    "sessionDesc": "マルチターン会話でモデル選択を固定（TTL 30分）。",
+    "contextTitle": "コンテキストウィンドウ安全性",
+    "contextDesc": "ルーティング前にトークン数を推定。超過時は大きなモデルに切替。",
+    "compressionTitle": "コンテキスト圧縮",
+    "compressionDesc": "長い会話を自動圧縮。最大80%トークン削減。",
+    "privacyTitle": "完全なプライバシー",
+    "privacyDesc": "認証情報はすべてローカル。テレメトリなし。データはネットワーク外に出ません。"
+  },
+  "ctaSection": {
+    "title": "シンプルなプロンプトに過剰支払いをやめる",
+    "subtitle": "無料でセルフホスト、またはマネージドAPIを利用。",
+    "primaryCta": "無料で始める",
+    "secondaryCta": "ドキュメントを読む"
+  }
+}

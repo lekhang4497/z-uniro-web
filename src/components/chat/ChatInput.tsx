@@ -3,10 +3,14 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import {
+  ArrowLeft,
   ArrowUp,
   Check,
   ChevronDown,
+  ChevronRight,
   ImageIcon,
+  LayoutGrid,
+  List as ListIcon,
   Mic,
   Plus,
   X,
@@ -18,7 +22,18 @@ import {
   toLocalId,
   useLocalModels,
 } from "@/hooks/useLocalModels";
+import {
+  formatProviderName,
+  groupModelsByProvider,
+  modelDisplayName,
+  providerLogoUrl,
+  shouldInvertOnDark,
+  type ProviderGroup,
+} from "@/lib/provider-display";
 import { cn } from "@/lib/utils";
+
+type MenuView = "main" | "providers" | "providerModels";
+type ProvidersViewMode = "list" | "card";
 
 interface ChatInputProps {
   onSend: (content: string) => void;
@@ -52,8 +67,19 @@ export default function ChatInput({
   const [input, setInput] = useState("");
   const [dragging, setDragging] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [showAll, setShowAll] = useState(false);
+  const [menuView, setMenuView] = useState<MenuView>("main");
+  const [providersViewMode, setProvidersViewMode] =
+    useState<ProvidersViewMode>("list");
+  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const local = useLocalModels();
+
+  // Always reopen on the main view; preserve list/card preference across opens.
+  useEffect(() => {
+    if (!menuOpen) {
+      setMenuView("main");
+      setSelectedProvider(null);
+    }
+  }, [menuOpen]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -110,17 +136,20 @@ export default function ChatInput({
     [onImageAttach]
   );
 
-  const { primary, rest } = useMemo(() => {
+  const { primary, providerGroups } = useMemo(() => {
     const profiles = backendModels.filter((m) => m.type === "routing_profile");
     const aliases = backendModels.filter((m) => m.type === "alias");
-    const plain = backendModels.filter((m) => m.type === "model");
     const top = [...profiles, ...aliases].slice(0, 3);
-    const topIds = new Set(top.map((m) => m.id));
-    const others = [...profiles, ...aliases, ...plain].filter(
-      (m) => !topIds.has(m.id)
-    );
-    return { primary: top, rest: others };
+    return {
+      primary: top,
+      providerGroups: groupModelsByProvider(backendModels),
+    };
   }, [backendModels]);
+
+  const activeProviderGroup = useMemo<ProviderGroup | null>(() => {
+    if (!selectedProvider) return null;
+    return providerGroups.find((g) => g.id === selectedProvider) ?? null;
+  }, [providerGroups, selectedProvider]);
 
   const modelLabel = useMemo(() => {
     if (!selectedModel) return "Choose model";
@@ -222,134 +251,155 @@ export default function ChatInput({
                 {menuOpen && (
                   <div
                     role="menu"
-                    className="absolute bottom-[calc(100%+10px)] right-0 z-30 w-[320px] p-1.5 rounded-xl border border-border-300 bg-bg-000 shadow-[0_24px_48px_-16px_rgba(0,0,0,.18),0_2px_8px_rgba(0,0,0,.06)]"
+                    className={cn(
+                      "absolute bottom-[calc(100%+10px)] right-0 z-30 p-1.5 rounded-xl border border-border-300 bg-bg-000 shadow-[0_24px_48px_-16px_rgba(0,0,0,.18),0_2px_8px_rgba(0,0,0,.06)] transition-[width] duration-100",
+                      menuView === "providers" && providersViewMode === "card"
+                        ? "w-[400px]"
+                        : "w-[320px]"
+                    )}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    {primary.map((m, i) => (
-                      <div key={m.id}>
-                        <ModelItem
-                          model={m}
-                          active={m.id === selectedModel}
-                          onClick={() => {
-                            onModelChange(m.id);
-                            setMenuOpen(false);
-                          }}
-                        />
-                        {i === 0 && <div className="h-px bg-border-200 my-1.5 mx-1" />}
-                      </div>
-                    ))}
-                    {primary.length === 0 && (
-                      <div className="px-3 py-2.5 text-[13px] text-text-400">
-                        No cloud models available
-                      </div>
-                    )}
-
-                    {local.reachable && local.models.length > 0 && (
+                    {menuView === "main" && (
                       <>
-                        <div className="h-px bg-border-200 my-1.5 mx-1" />
-                        <div className="px-3 pt-1.5 pb-0.5 text-[10.5px] tracking-[.08em] uppercase text-text-400">
-                          Local · Ollama
-                        </div>
-                        <div className="max-h-44 overflow-y-auto">
-                          {local.models.map((m) => {
-                            const id = toLocalId(m.name);
-                            const active = id === selectedModel;
-                            return (
-                              <button
-                                key={m.name}
-                                type="button"
-                                onClick={() => {
-                                  onModelChange(id);
-                                  setMenuOpen(false);
-                                }}
-                                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left hover:bg-bg-100"
-                              >
-                                <div className="flex-1 min-w-0">
-                                  <div className="text-[14px] font-medium text-text-000 leading-tight truncate">
-                                    {m.name}
-                                  </div>
-                                  <div className="text-[11.5px] text-text-400 mt-0.5">
-                                    {(m.sizeBytes / 1024 ** 3).toFixed(1)} GB
-                                    {m.details?.parameter_size
-                                      ? ` · ${m.details.parameter_size}`
-                                      : ""}
-                                  </div>
-                                </div>
-                                {active && (
-                                  <Check className="w-4 h-4 text-text-000 shrink-0" />
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </>
-                    )}
-
-                    <div className="h-px bg-border-200 my-1.5 mx-1" />
-
-                    <button
-                      type="button"
-                      onClick={() => onThinkingModeChange(!thinkingMode)}
-                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left hover:bg-bg-100"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[14px] font-medium text-text-000 leading-tight">
-                          Adaptive thinking
-                        </div>
-                        <div className="text-[12px] text-text-400 mt-0.5 leading-[1.35]">
-                          Thinks for more complex tasks
-                        </div>
-                      </div>
-                      <span
-                        className={cn(
-                          "relative h-5 w-9 shrink-0 rounded-full transition-colors",
-                          thinkingMode ? "bg-text-000" : "bg-bg-400"
+                        {primary.map((m, i) => (
+                          <div key={m.id}>
+                            <ModelItem
+                              model={m}
+                              active={m.id === selectedModel}
+                              onClick={() => {
+                                onModelChange(m.id);
+                                setMenuOpen(false);
+                              }}
+                            />
+                            {i === 0 && (
+                              <div className="h-px bg-border-200 my-1.5 mx-1" />
+                            )}
+                          </div>
+                        ))}
+                        {primary.length === 0 && (
+                          <div className="px-3 py-2.5 text-[13px] text-text-400">
+                            No cloud models available
+                          </div>
                         )}
-                      >
-                        <span
-                          className={cn(
-                            "absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
-                            thinkingMode && "translate-x-4"
-                          )}
-                        />
-                      </span>
-                    </button>
 
-                    {rest.length > 0 && (
-                      <>
+                        {local.reachable && local.models.length > 0 && (
+                          <>
+                            <div className="h-px bg-border-200 my-1.5 mx-1" />
+                            <div className="px-3 pt-1.5 pb-0.5 text-[10.5px] tracking-[.08em] uppercase text-text-400">
+                              Local · Ollama
+                            </div>
+                            <div className="max-h-44 overflow-y-auto">
+                              {local.models.map((m) => {
+                                const id = toLocalId(m.name);
+                                const active = id === selectedModel;
+                                return (
+                                  <button
+                                    key={m.name}
+                                    type="button"
+                                    onClick={() => {
+                                      onModelChange(id);
+                                      setMenuOpen(false);
+                                    }}
+                                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left hover:bg-bg-100"
+                                  >
+                                    <div className="flex-1 min-w-0">
+                                      <div className="text-[14px] font-medium text-text-000 leading-tight truncate">
+                                        {m.name}
+                                      </div>
+                                      <div className="text-[11.5px] text-text-400 mt-0.5">
+                                        {(m.sizeBytes / 1024 ** 3).toFixed(1)} GB
+                                        {m.details?.parameter_size
+                                          ? ` · ${m.details.parameter_size}`
+                                          : ""}
+                                      </div>
+                                    </div>
+                                    {active && (
+                                      <Check className="w-4 h-4 text-text-000 shrink-0" />
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </>
+                        )}
+
                         <div className="h-px bg-border-200 my-1.5 mx-1" />
+
                         <button
                           type="button"
-                          onClick={() => setShowAll((v) => !v)}
+                          onClick={() => onThinkingModeChange(!thinkingMode)}
                           className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left hover:bg-bg-100"
                         >
-                          <div className="flex-1 min-w-0 text-[14px] font-medium text-text-000 leading-tight">
-                            More models
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[14px] font-medium text-text-000 leading-tight">
+                              Adaptive thinking
+                            </div>
+                            <div className="text-[12px] text-text-400 mt-0.5 leading-[1.35]">
+                              Thinks for more complex tasks
+                            </div>
                           </div>
-                          <ChevronDown
+                          <span
                             className={cn(
-                              "w-3.5 h-3.5 text-text-400 transition-transform",
-                              showAll ? "rotate-180" : "-rotate-90"
+                              "relative h-5 w-9 shrink-0 rounded-full transition-colors",
+                              thinkingMode ? "bg-text-000" : "bg-bg-400"
                             )}
-                          />
+                          >
+                            <span
+                              className={cn(
+                                "absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
+                                thinkingMode && "translate-x-4"
+                              )}
+                            />
+                          </span>
                         </button>
 
-                        {showAll && (
-                          <div className="mt-1 max-h-64 overflow-y-auto">
-                            {rest.map((m) => (
-                              <ModelItem
-                                key={m.id}
-                                model={m}
-                                active={m.id === selectedModel}
-                                onClick={() => {
-                                  onModelChange(m.id);
-                                  setMenuOpen(false);
-                                }}
-                              />
-                            ))}
-                          </div>
+                        {providerGroups.length > 0 && (
+                          <>
+                            <div className="h-px bg-border-200 my-1.5 mx-1" />
+                            <button
+                              type="button"
+                              onClick={() => setMenuView("providers")}
+                              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left hover:bg-bg-100"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <div className="text-[14px] font-medium text-text-000 leading-tight">
+                                  More models
+                                </div>
+                                <div className="text-[12px] text-text-400 mt-0.5 leading-[1.35]">
+                                  Browse by provider · {providerGroups.length}{" "}
+                                  providers
+                                </div>
+                              </div>
+                              <ChevronRight className="w-3.5 h-3.5 text-text-400" />
+                            </button>
+                          </>
                         )}
                       </>
+                    )}
+
+                    {menuView === "providers" && (
+                      <ProvidersView
+                        groups={providerGroups}
+                        viewMode={providersViewMode}
+                        onViewModeChange={setProvidersViewMode}
+                        onBack={() => setMenuView("main")}
+                        onSelect={(id) => {
+                          setSelectedProvider(id);
+                          setMenuView("providerModels");
+                        }}
+                      />
+                    )}
+
+                    {menuView === "providerModels" && activeProviderGroup && (
+                      <ProviderModelsView
+                        group={activeProviderGroup}
+                        selectedModel={selectedModel}
+                        onBack={() => setMenuView("providers")}
+                        onSelect={(id) => {
+                          onModelChange(id);
+                          setMenuOpen(false);
+                        }}
+                      />
                     )}
                   </div>
                 )}
@@ -410,10 +460,12 @@ function ModelItem({
   model,
   active,
   onClick,
+  label,
 }: {
   model: BackendModel;
   active: boolean;
   onClick: () => void;
+  label?: string;
 }) {
   return (
     <button
@@ -423,7 +475,7 @@ function ModelItem({
     >
       <div className="flex-1 min-w-0">
         <div className="text-[14px] font-medium text-text-000 leading-tight truncate">
-          {model.id}
+          {label ?? model.id}
         </div>
         {model.description && (
           <div className="text-[12px] text-text-400 mt-0.5 leading-[1.35] line-clamp-2">
@@ -433,6 +485,210 @@ function ModelItem({
       </div>
       {active && <Check className="w-4 h-4 text-text-000 shrink-0" />}
     </button>
+  );
+}
+
+function ProviderLogo({
+  provider,
+  size = 28,
+}: {
+  provider: string;
+  size?: number;
+}) {
+  const url = providerLogoUrl(provider);
+  const initial = formatProviderName(provider).charAt(0).toUpperCase() || "·";
+  const invertCls = shouldInvertOnDark(provider) ? "dark:invert" : "";
+  return (
+    <span
+      className="relative inline-flex items-center justify-center rounded-full bg-bg-200 overflow-hidden flex-shrink-0"
+      style={{ width: size, height: size }}
+    >
+      {url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={url}
+          alt={provider}
+          loading="lazy"
+          className={cn("w-full h-full object-cover", invertCls)}
+          onError={(e) => {
+            const t = e.currentTarget as HTMLImageElement;
+            t.style.display = "none";
+            const sib = t.nextElementSibling as HTMLElement | null;
+            if (sib) sib.style.display = "flex";
+          }}
+        />
+      ) : null}
+      <span
+        className={cn(
+          "absolute inset-0 items-center justify-center text-text-200 font-semibold",
+          url ? "hidden" : "flex"
+        )}
+        style={{ fontSize: Math.round(size * 0.45) }}
+      >
+        {initial}
+      </span>
+    </span>
+  );
+}
+
+function ProvidersView({
+  groups,
+  viewMode,
+  onViewModeChange,
+  onBack,
+  onSelect,
+}: {
+  groups: ProviderGroup[];
+  viewMode: "list" | "card";
+  onViewModeChange: (m: "list" | "card") => void;
+  onBack: () => void;
+  onSelect: (provider: string) => void;
+}) {
+  return (
+    <div>
+      <div className="flex items-center gap-1 px-1 pt-0.5 pb-1.5">
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-text-300 hover:bg-bg-100 hover:text-text-000"
+          title="Back"
+          aria-label="Back"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </button>
+        <div className="flex-1 text-[13.5px] font-medium text-text-000 px-1">
+          Browse providers
+        </div>
+        <div className="inline-flex gap-0.5 rounded-md border border-border-200 bg-bg-100 p-0.5">
+          <button
+            type="button"
+            onClick={() => onViewModeChange("list")}
+            className={cn(
+              "inline-flex items-center justify-center h-6 w-6 rounded",
+              viewMode === "list"
+                ? "bg-bg-000 text-text-000 shadow-sm"
+                : "text-text-400 hover:text-text-000"
+            )}
+            title="List view"
+            aria-label="List view"
+          >
+            <ListIcon className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={() => onViewModeChange("card")}
+            className={cn(
+              "inline-flex items-center justify-center h-6 w-6 rounded",
+              viewMode === "card"
+                ? "bg-bg-000 text-text-000 shadow-sm"
+                : "text-text-400 hover:text-text-000"
+            )}
+            title="Card view"
+            aria-label="Card view"
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+      <div className="h-px bg-border-200 mx-1 mb-1" />
+      {groups.length === 0 ? (
+        <div className="px-3 py-6 text-center text-[13px] text-text-400">
+          No providers available
+        </div>
+      ) : viewMode === "list" ? (
+        <div className="max-h-[300px] overflow-y-auto">
+          {groups.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              onClick={() => onSelect(g.id)}
+              className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left hover:bg-bg-100"
+            >
+              <ProviderLogo provider={g.id} size={28} />
+              <div className="flex-1 min-w-0">
+                <div className="text-[13.5px] font-medium text-text-000 truncate">
+                  {formatProviderName(g.id)}
+                </div>
+                <div className="text-[11.5px] text-text-400">
+                  {g.models.length} model{g.models.length === 1 ? "" : "s"}
+                </div>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-text-400 shrink-0" />
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-1.5 max-h-[340px] overflow-y-auto p-1">
+          {groups.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              onClick={() => onSelect(g.id)}
+              className="flex flex-col items-start gap-2 rounded-lg border border-border-200 bg-bg-000 px-3 py-3 text-left hover:border-text-200 transition-colors"
+            >
+              <ProviderLogo provider={g.id} size={32} />
+              <div className="min-w-0 w-full">
+                <div className="text-[13px] font-medium text-text-000 truncate">
+                  {formatProviderName(g.id)}
+                </div>
+                <div className="text-[11px] text-text-400 mt-0.5">
+                  {g.models.length} model{g.models.length === 1 ? "" : "s"}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProviderModelsView({
+  group,
+  selectedModel,
+  onBack,
+  onSelect,
+}: {
+  group: ProviderGroup;
+  selectedModel: string;
+  onBack: () => void;
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <div>
+      <div className="flex items-center gap-1 px-1 pt-0.5 pb-1.5">
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-text-300 hover:bg-bg-100 hover:text-text-000"
+          title="Back"
+          aria-label="Back"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </button>
+        <div className="flex-1 flex items-center gap-2 min-w-0 px-1">
+          <ProviderLogo provider={group.id} size={20} />
+          <div className="text-[13.5px] font-medium text-text-000 truncate">
+            {formatProviderName(group.id)}
+          </div>
+          <span className="text-[11.5px] text-text-400 ml-auto">
+            {group.models.length}
+          </span>
+        </div>
+      </div>
+      <div className="h-px bg-border-200 mx-1 mb-1" />
+      <div className="max-h-[340px] overflow-y-auto">
+        {group.models.map((m) => (
+          <ModelItem
+            key={m.id}
+            model={m}
+            active={m.id === selectedModel}
+            label={modelDisplayName(m.id)}
+            onClick={() => onSelect(m.id)}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 

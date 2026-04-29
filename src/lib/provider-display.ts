@@ -226,3 +226,85 @@ export function modelDisplayMeta(model: {
   if (override) return override;
   return { label: model.id, description: model.description };
 }
+
+// ---- Provider → credential gating --------------------------------------
+
+// Provider id → list of credential keys (any one of which counts as
+// "connected"). The backend's credentials.json uses these key names; the
+// desktop app's Connections tab writes the same names. Empty / missing
+// entries mean "no gating" (e.g. routing-profile slugs, ollama, or
+// long-tail providers we'd rather not block).
+const PROVIDER_CREDENTIALS: Record<string, string[]> = {
+  // OAuth subscriptions
+  anthropic: ["anthropic"],
+  openai: ["openai", "openai-codex"],
+  "openai-codex": ["openai", "openai-codex"],
+  google: ["google", "gemini", "google-gemini-cli"],
+  "google-gemini-cli": ["google-gemini-cli", "gemini", "google"],
+  gemini: ["gemini", "google", "google-gemini-cli"],
+  "google-antigravity": ["google-antigravity", "antigravity"],
+  antigravity: ["antigravity", "google-antigravity"],
+  "github-copilot": ["github-copilot"],
+
+  // API-key providers
+  mistralai: ["mistral", "mistralai"],
+  mistral: ["mistral", "mistralai"],
+  "mistral-ai": ["mistral", "mistralai"],
+  xai: ["xai"],
+  "x-ai": ["xai"],
+  deepseek: ["deepseek"],
+  "deepseek-ai": ["deepseek"],
+  groq: ["groq"],
+  nvidia: ["nvidia"],
+  cohere: ["cohere"],
+  openrouter: ["openrouter"],
+
+  // NVIDIA NIM routes — these prefixes route through the NVIDIA key.
+  meta: ["nvidia"],
+  "meta-llama": ["nvidia"],
+  microsoft: ["nvidia"],
+  qwen: ["nvidia"],
+  ibm: ["nvidia"],
+  moonshotai: ["nvidia"],
+  bytedance: ["nvidia"],
+  databricks: ["nvidia"],
+  baai: ["nvidia"],
+  "01-ai": ["nvidia"],
+};
+
+const SUBSCRIPTION_PROVIDERS = new Set<string>([
+  "anthropic",
+  "openai",
+  "openai-codex",
+  "google",
+  "google-gemini-cli",
+  "gemini",
+  "google-antigravity",
+  "antigravity",
+  "github-copilot",
+]);
+
+export function requiredCredentials(provider: string): string[] {
+  return PROVIDER_CREDENTIALS[provider.toLowerCase()] ?? [];
+}
+
+/**
+ * True if no creds are required, or at least one accepted key is connected.
+ * Pass `connectedKeys = null` (e.g. on web) to skip gating entirely.
+ */
+export function isProviderConnected(
+  provider: string,
+  connectedKeys: ReadonlySet<string> | null
+): boolean {
+  if (connectedKeys === null) return true;
+  const needs = requiredCredentials(provider);
+  if (needs.length === 0) return true;
+  return needs.some((k) => connectedKeys.has(k));
+}
+
+/** Tag text shown on a disabled provider row — picks the right CTA verb. */
+export function connectActionLabel(provider: string): string {
+  return SUBSCRIPTION_PROVIDERS.has(provider.toLowerCase())
+    ? "Connect to subscription"
+    : "Add API key";
+}

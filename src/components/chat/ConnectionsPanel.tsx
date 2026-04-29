@@ -4,7 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
   CheckCircle2,
+  Copy,
   Download,
+  ExternalLink,
   Loader2,
   Plug,
   Trash2,
@@ -17,6 +19,7 @@ import type {
   LoginProgressEvent,
   SubscriptionProviderId,
 } from "@/types/electron";
+import { emitConnectionsChanged } from "@/hooks/useConnectedProviders";
 import { cn } from "@/lib/utils";
 
 const SUBSCRIPTIONS: {
@@ -135,6 +138,8 @@ export default function ConnectionsPanel() {
       if (!res.ok) {
         const detail = res.output ? `\n\n${res.output.trim()}` : "";
         setError(`Login failed (exit ${res.code ?? "?"})${detail}`);
+      } else {
+        emitConnectionsChanged();
       }
       await refresh();
     } catch (e) {
@@ -150,6 +155,7 @@ export default function ConnectionsPanel() {
     setError(null);
     try {
       await window.uniro.auth.remove(provider);
+      emitConnectionsChanged();
       await refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -343,30 +349,110 @@ export default function ConnectionsPanel() {
         </div>
       </section>
 
-      {(activeProvider || progress.length > 0) && (
-        <section className="mt-5">
-          <div className="text-[11px] tracking-[.08em] uppercase text-text-400 mb-2">
-            Log
-          </div>
-          <div
-            ref={progressRef}
-            className="rounded-[10px] border border-border-200 bg-bg-100 p-3 font-mono text-[12px] text-text-200 max-h-[200px] overflow-y-auto leading-[1.5] whitespace-pre-wrap"
-          >
-            {progress.length === 0 ? (
-              <span className="text-text-400">Starting…</span>
-            ) : (
-              progress.map((p, i) => (
-                <div
-                  key={i}
-                  className={p.channel === "stderr" ? "text-text-300" : ""}
-                >
-                  {p.line}
+      {(() => {
+        // Find the most recent structured event in this session (auth URL
+        // for browser-redirect flows, or device-code for GitHub Copilot).
+        const lastAuthUrl = [...progress]
+          .reverse()
+          .find((p) => p.authUrl)?.authUrl;
+        const lastDevice = [...progress]
+          .reverse()
+          .find((p) => p.userCode && p.verificationUri);
+        return (
+          (activeProvider || progress.length > 0) && (
+            <section className="mt-5 flex flex-col gap-3">
+              {lastDevice && (
+                <div className="rounded-[10px] border border-border-300 bg-bg-000 px-4 py-3.5">
+                  <div className="text-[11px] tracking-[.08em] uppercase text-text-400 mb-2">
+                    Device sign-in code
+                  </div>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <code className="font-mono text-[20px] tracking-[0.16em] text-text-000 bg-bg-200 px-3 py-1.5 rounded">
+                      {lastDevice.userCode}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard
+                          ?.writeText(lastDevice.userCode ?? "")
+                          .catch(() => {});
+                      }}
+                      className="inline-flex items-center gap-1.5 text-[12px] text-text-300 hover:text-text-000"
+                    >
+                      <Copy className="w-3 h-3" />
+                      Copy
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        window.uniro?.app.openExternal(
+                          lastDevice.verificationUri ?? ""
+                        )
+                      }
+                      className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-accent-000 text-accent-fg hover:bg-accent-100 px-3 py-1.5 text-[12.5px] font-medium"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Open {new URL(lastDevice.verificationUri ?? "").host}
+                    </button>
+                  </div>
+                  <div className="text-[12px] text-text-400 mt-2">
+                    Visit the URL above and enter this code to authorize the
+                    desktop app.
+                  </div>
                 </div>
-              ))
-            )}
-          </div>
-        </section>
-      )}
+              )}
+
+              {!lastDevice && lastAuthUrl && (
+                <div className="rounded-[10px] border border-border-200 bg-bg-100 px-3.5 py-2.5 flex items-center gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[12.5px] text-text-200 font-medium">
+                      Browser didn&apos;t open?
+                    </div>
+                    <div className="text-[11.5px] text-text-400 truncate">
+                      {lastAuthUrl}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      window.uniro?.app.openExternal(lastAuthUrl)
+                    }
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border-300 bg-bg-000 px-2.5 py-1.5 text-[12px] text-text-200 hover:border-text-200 hover:text-text-000"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Open
+                  </button>
+                </div>
+              )}
+
+              <div>
+                <div className="text-[11px] tracking-[.08em] uppercase text-text-400 mb-2">
+                  Log
+                </div>
+                <div
+                  ref={progressRef}
+                  className="rounded-[10px] border border-border-200 bg-bg-100 p-3 font-mono text-[12px] text-text-200 max-h-[200px] overflow-y-auto leading-[1.5] whitespace-pre-wrap"
+                >
+                  {progress.length === 0 ? (
+                    <span className="text-text-400">Starting…</span>
+                  ) : (
+                    progress.map((p, i) => (
+                      <div
+                        key={i}
+                        className={
+                          p.channel === "stderr" ? "text-text-300" : ""
+                        }
+                      >
+                        {p.line}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </section>
+          )
+        );
+      })()}
 
       {error && (
         <div className="mt-4 rounded-[10px] border border-[#a63a2a]/40 bg-[#a63a2a]/5 px-3.5 py-2.5 text-[13px] text-[#a63a2a]">
@@ -404,6 +490,7 @@ export default function ConnectionsPanel() {
                   try {
                     const res = await window.uniro.auth.addKey(p.id, key);
                     if (!res.ok) setError(res.output || "Failed to save key");
+                    else emitConnectionsChanged();
                     await refresh();
                   } finally {
                     setActiveProvider(null);
@@ -413,6 +500,7 @@ export default function ConnectionsPanel() {
                   setActiveProvider(provider);
                   try {
                     await window.uniro!.auth.remove(provider);
+                    emitConnectionsChanged();
                     await refresh();
                   } finally {
                     setActiveProvider(null);

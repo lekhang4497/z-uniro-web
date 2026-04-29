@@ -13,6 +13,7 @@ import {
   LayoutGrid,
   List as ListIcon,
   Mic,
+  Plug,
   Plus,
   X,
 } from "lucide-react";
@@ -24,12 +25,15 @@ import {
   useLocalModels,
 } from "@/hooks/useLocalModels";
 import {
+  connectActionLabel,
   formatProviderName,
   groupModelsByProvider,
+  isProviderConnected,
   modelDisplayMeta,
   modelDisplayName,
   type ProviderGroup,
 } from "@/lib/provider-display";
+import { useConnectedProviders } from "@/hooks/useConnectedProviders";
 import { ProviderLogo } from "./ProviderLogo";
 import { cn } from "@/lib/utils";
 
@@ -53,6 +57,9 @@ interface ChatInputProps {
   // The greeting state (composer centered) opens "below"; in-chat docks
   // sit at the bottom of the viewport, so default to "above".
   dropdownPlacement?: "above" | "below";
+  // Optional deep-link to Settings for the "Connect to subscription" CTA
+  // shown on disabled providers in the Browse panel.
+  onOpenSettings?: (tab: "connections" | "models" | "general") => void;
 }
 
 export default function ChatInput({
@@ -69,6 +76,7 @@ export default function ChatInput({
   imageFile,
   onImageRemove,
   dropdownPlacement = "above",
+  onOpenSettings,
 }: ChatInputProps) {
   const [input, setInput] = useState("");
   const [dragging, setDragging] = useState(false);
@@ -80,6 +88,7 @@ export default function ChatInput({
   const [plusMenuOpen, setPlusMenuOpen] = useState(false);
   const plusMenuRef = useRef<HTMLDivElement>(null);
   const local = useLocalModels();
+  const connectedKeys = useConnectedProviders();
 
   // Close + menu on outside click.
   useEffect(() => {
@@ -435,10 +444,15 @@ export default function ChatInput({
                         groups={providerGroups}
                         viewMode={providersViewMode}
                         onViewModeChange={setProvidersViewMode}
+                        connectedKeys={connectedKeys}
                         onBack={() => setMenuView("main")}
                         onSelect={(id) => {
                           setSelectedProvider(id);
                           setMenuView("providerModels");
+                        }}
+                        onConnect={() => {
+                          setMenuOpen(false);
+                          onOpenSettings?.("connections");
                         }}
                       />
                     )}
@@ -546,14 +560,18 @@ function ProvidersView({
   groups,
   viewMode,
   onViewModeChange,
+  connectedKeys,
   onBack,
   onSelect,
+  onConnect,
 }: {
   groups: ProviderGroup[];
   viewMode: "list" | "card";
   onViewModeChange: (m: "list" | "card") => void;
+  connectedKeys: ReadonlySet<string> | null;
   onBack: () => void;
   onSelect: (provider: string) => void;
+  onConnect: (provider: string) => void;
 }) {
   return (
     <div className="flex flex-col min-h-0 flex-1">
@@ -608,46 +626,103 @@ function ProvidersView({
         </div>
       ) : viewMode === "list" ? (
         <div className="overflow-y-auto min-h-0 flex-1">
-          {groups.map((g) => (
-            <button
-              key={g.id}
-              type="button"
-              onClick={() => onSelect(g.id)}
-              className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left hover:bg-bg-100"
-            >
-              <ProviderLogo provider={g.id} size={28} />
-              <div className="flex-1 min-w-0">
-                <div className="text-[13.5px] font-medium text-text-000 truncate">
-                  {formatProviderName(g.id)}
+          {groups.map((g) => {
+            const enabled = isProviderConnected(g.id, connectedKeys);
+            const cta = connectActionLabel(g.id);
+            return (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => (enabled ? onSelect(g.id) : onConnect(g.id))}
+                title={enabled ? formatProviderName(g.id) : cta}
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left",
+                  enabled
+                    ? "hover:bg-bg-100"
+                    : "hover:bg-bg-100/60 opacity-90"
+                )}
+              >
+                <ProviderLogo
+                  provider={g.id}
+                  size={28}
+                  className={enabled ? "" : "opacity-50"}
+                />
+                <div className="flex-1 min-w-0">
+                  <div
+                    className={cn(
+                      "text-[13.5px] font-medium truncate",
+                      enabled ? "text-text-000" : "text-text-300"
+                    )}
+                  >
+                    {formatProviderName(g.id)}
+                  </div>
+                  {enabled ? (
+                    <div className="text-[11.5px] text-text-400">
+                      {g.models.length} model{g.models.length === 1 ? "" : "s"}
+                    </div>
+                  ) : (
+                    <div className="text-[10.5px] text-text-300 mt-0.5 inline-flex items-center gap-1.5 rounded-md border border-border-300 bg-bg-200 px-1.5 py-px font-medium">
+                      <Plug className="w-2.5 h-2.5" />
+                      {cta}
+                    </div>
+                  )}
                 </div>
-                <div className="text-[11.5px] text-text-400">
-                  {g.models.length} model{g.models.length === 1 ? "" : "s"}
-                </div>
-              </div>
-              <ChevronRight className="w-3.5 h-3.5 text-text-400 shrink-0" />
-            </button>
-          ))}
+                <ChevronRight
+                  className={cn(
+                    "w-3.5 h-3.5 shrink-0",
+                    enabled ? "text-text-400" : "text-text-500"
+                  )}
+                />
+              </button>
+            );
+          })}
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-1.5 overflow-y-auto min-h-0 flex-1 p-1">
-          {groups.map((g) => (
-            <button
-              key={g.id}
-              type="button"
-              onClick={() => onSelect(g.id)}
-              className="flex flex-col items-start gap-2 rounded-lg border border-border-200 bg-bg-000 px-3 py-3 text-left hover:border-text-200 transition-colors"
-            >
-              <ProviderLogo provider={g.id} size={32} />
-              <div className="min-w-0 w-full">
-                <div className="text-[13px] font-medium text-text-000 truncate">
-                  {formatProviderName(g.id)}
+          {groups.map((g) => {
+            const enabled = isProviderConnected(g.id, connectedKeys);
+            const cta = connectActionLabel(g.id);
+            return (
+              <button
+                key={g.id}
+                type="button"
+                onClick={() => (enabled ? onSelect(g.id) : onConnect(g.id))}
+                title={enabled ? formatProviderName(g.id) : cta}
+                className={cn(
+                  "flex flex-col items-start gap-2 rounded-lg border bg-bg-000 px-3 py-3 text-left transition-colors",
+                  enabled
+                    ? "border-border-200 hover:border-text-200"
+                    : "border-border-200/70 hover:border-border-300 opacity-90"
+                )}
+              >
+                <ProviderLogo
+                  provider={g.id}
+                  size={32}
+                  className={enabled ? "" : "opacity-50"}
+                />
+                <div className="min-w-0 w-full">
+                  <div
+                    className={cn(
+                      "text-[13px] font-medium truncate",
+                      enabled ? "text-text-000" : "text-text-300"
+                    )}
+                  >
+                    {formatProviderName(g.id)}
+                  </div>
+                  {enabled ? (
+                    <div className="text-[11px] text-text-400 mt-0.5">
+                      {g.models.length} model{g.models.length === 1 ? "" : "s"}
+                    </div>
+                  ) : (
+                    <div className="text-[10px] text-text-300 mt-1 inline-flex items-center gap-1 rounded-md border border-border-300 bg-bg-200 px-1.5 py-px font-medium">
+                      <Plug className="w-2.5 h-2.5" />
+                      {cta}
+                    </div>
+                  )}
                 </div>
-                <div className="text-[11px] text-text-400 mt-0.5">
-                  {g.models.length} model{g.models.length === 1 ? "" : "s"}
-                </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

@@ -37,6 +37,7 @@ interface ChatWindowProps {
   onImageRemove: () => void;
   pendingPrompt?: string | null;
   onPendingPromptConsumed?: () => void;
+  onOpenSettings?: (tab: "connections" | "models" | "general") => void;
 }
 
 function fileToBase64(file: File): Promise<string> {
@@ -78,6 +79,7 @@ export default function ChatWindow({
   onImageRemove,
   pendingPrompt,
   onPendingPromptConsumed,
+  onOpenSettings,
 }: ChatWindowProps) {
   const [isStreaming, setIsStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -287,6 +289,7 @@ export default function ChatWindow({
       imageFile={imageFile}
       onImageRemove={onImageRemove}
       dropdownPlacement={placement}
+      onOpenSettings={onOpenSettings}
     />
   );
 

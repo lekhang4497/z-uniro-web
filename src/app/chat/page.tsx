@@ -27,6 +27,21 @@ function ChatPageInner() {
   const [thinkingMode, setThinkingMode] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [view, setView] = useState<"chat" | "settings">("chat");
+  const [settingsInitialTab, setSettingsInitialTab] = useState<
+    "general" | "connections" | "models" | undefined
+  >(undefined);
+  // Bumped each time we deep-link into settings, to force SettingsView to
+  // re-mount with the new initialTab.
+  const [settingsKey, setSettingsKey] = useState(0);
+
+  const openSettings = useCallback(
+    (tab?: "general" | "connections" | "models") => {
+      setSettingsInitialTab(tab);
+      setSettingsKey((k) => k + 1);
+      setView("settings");
+    },
+    []
+  );
   const t = useTranslations();
   const { models: backendModels, loading: modelsLoading } = useModels();
 
@@ -131,7 +146,7 @@ function ChatPageInner() {
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen(!sidebarOpen)}
         settingsActive={view === "settings"}
-        onOpenSettings={() => setView("settings")}
+        onOpenSettings={() => openSettings()}
       />
 
       <div className="flex flex-col flex-1 min-w-0">
@@ -144,7 +159,7 @@ function ChatPageInner() {
         />
 
         {view === "settings" ? (
-          <SettingsView />
+          <SettingsView key={settingsKey} initialTab={settingsInitialTab} />
         ) : (
           <ChatWindow
             conversation={activeConversation}
@@ -162,6 +177,7 @@ function ChatPageInner() {
             onImageRemove={() => setImageFile(null)}
             pendingPrompt={pendingPrompt}
             onPendingPromptConsumed={() => setPendingPrompt(null)}
+            onOpenSettings={openSettings}
           />
         )}
       </div>

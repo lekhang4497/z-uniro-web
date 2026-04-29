@@ -301,8 +301,12 @@ function PlaceholderPanel({ title, note }: { title: string; note: string }) {
   );
 }
 
-export default function SettingsView() {
-  const [tab, setTab] = useState<TabId>("general");
+export default function SettingsView({
+  initialTab,
+}: {
+  initialTab?: TabId;
+} = {}) {
+  const [tab, setTab] = useState<TabId>(initialTab ?? "general");
   const [isDesktop, setIsDesktop] = useState(false);
   useEffect(() => {
     setIsDesktop(typeof window !== "undefined" && !!window.uniro?.isDesktop);

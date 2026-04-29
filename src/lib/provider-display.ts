@@ -194,3 +194,35 @@ export function modelDisplayName(modelId: string): string {
   const i = modelId.indexOf("/");
   return i > 0 ? modelId.slice(i + 1) : modelId;
 }
+
+// Pretty labels + descriptions for known routing profiles. The backend
+// emits these as `type: "routing_profile"` with bare ids ("auto", "eco",
+// "premium"); the UI overrides their visible label and tagline so users
+// see a friendly name rather than the raw slug.
+const ROUTING_PROFILE_OVERRIDES: Record<
+  string,
+  { label: string; description: string }
+> = {
+  auto: { label: "Auto", description: "UNIRO Smart routing" },
+  eco: { label: "Eco", description: "Use cheapest models" },
+  premium: { label: "Premium", description: "Use most capable models" },
+};
+
+export function routingProfileMeta(
+  modelId: string
+): { label: string; description: string } | null {
+  return ROUTING_PROFILE_OVERRIDES[modelId.toLowerCase()] ?? null;
+}
+
+/**
+ * Resolve display label + description for any backend model. For routing
+ * profiles we override; for everything else we fall back to the raw fields.
+ */
+export function modelDisplayMeta(model: {
+  id: string;
+  description?: string;
+}): { label: string; description?: string } {
+  const override = routingProfileMeta(model.id);
+  if (override) return override;
+  return { label: model.id, description: model.description };
+}

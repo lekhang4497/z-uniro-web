@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import {
   ArrowLeft,
   ArrowUp,
+  Brain,
   Check,
   ChevronDown,
   ChevronRight,
@@ -25,11 +26,11 @@ import {
 import {
   formatProviderName,
   groupModelsByProvider,
+  modelDisplayMeta,
   modelDisplayName,
-  providerLogoUrl,
-  shouldInvertOnDark,
   type ProviderGroup,
 } from "@/lib/provider-display";
+import { ProviderLogo } from "./ProviderLogo";
 import { cn } from "@/lib/utils";
 
 type MenuView = "main" | "providers" | "providerModels";
@@ -71,7 +72,24 @@ export default function ChatInput({
   const [providersViewMode, setProvidersViewMode] =
     useState<ProvidersViewMode>("list");
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
+  const [plusMenuOpen, setPlusMenuOpen] = useState(false);
+  const plusMenuRef = useRef<HTMLDivElement>(null);
   const local = useLocalModels();
+
+  // Close + menu on outside click.
+  useEffect(() => {
+    if (!plusMenuOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (
+        plusMenuRef.current &&
+        !plusMenuRef.current.contains(e.target as Node)
+      ) {
+        setPlusMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [plusMenuOpen]);
 
   // Always reopen on the main view; preserve list/card preference across opens.
   useEffect(() => {
@@ -155,7 +173,8 @@ export default function ChatInput({
     if (!selectedModel) return "Choose model";
     if (isLocalId(selectedModel)) return `local · ${fromLocalId(selectedModel)}`;
     const m = backendModels.find((x) => x.id === selectedModel);
-    return m?.id ?? selectedModel;
+    if (m) return modelDisplayMeta(m).label;
+    return selectedModel;
   }, [selectedModel, backendModels]);
 
   const hasText = !!input.trim();
@@ -205,15 +224,21 @@ export default function ChatInput({
           </div>
 
           <div className="flex items-center justify-between px-2.5 pb-2.5 pt-1.5">
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 relative" ref={plusMenuRef}>
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  fileInputRef.current?.click();
+                  setPlusMenuOpen((o) => !o);
                 }}
-                title={t("chat.attach") ?? "Attach"}
-                className="inline-flex items-center justify-center w-[30px] h-[30px] rounded-lg text-text-400 hover:bg-bg-200 hover:text-text-000 transition-colors"
+                title="More actions"
+                aria-label="More actions"
+                className={cn(
+                  "inline-flex items-center justify-center w-[30px] h-[30px] rounded-lg transition-colors",
+                  plusMenuOpen
+                    ? "bg-bg-200 text-text-000"
+                    : "text-text-400 hover:bg-bg-200 hover:text-text-000"
+                )}
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -224,6 +249,52 @@ export default function ChatInput({
                 className="hidden"
                 onChange={handleFileChange}
               />
+              {thinkingMode && (
+                <span
+                  className="inline-flex items-center gap-1 rounded-md bg-bg-200 text-text-200 px-1.5 py-0.5 text-[11px]"
+                  title="Adaptive thinking is on — toggle from the + menu"
+                >
+                  <Brain className="w-3 h-3" />
+                  Thinking
+                </span>
+              )}
+
+              {plusMenuOpen && (
+                <div
+                  role="menu"
+                  className="absolute bottom-[calc(100%+8px)] left-0 z-30 w-[220px] p-1.5 rounded-xl border border-border-300 bg-bg-000 shadow-[0_24px_48px_-16px_rgba(0,0,0,.18),0_2px_8px_rgba(0,0,0,.06)]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onThinkingModeChange(!thinkingMode);
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left hover:bg-bg-100"
+                  >
+                    <Brain className="w-4 h-4 text-text-300" />
+                    <span className="flex-1 text-[13.5px] text-text-000">
+                      Thinking
+                    </span>
+                    {thinkingMode && (
+                      <Check className="w-4 h-4 text-text-000" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPlusMenuOpen(false);
+                      fileInputRef.current?.click();
+                    }}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left hover:bg-bg-100"
+                  >
+                    <ImageIcon className="w-4 h-4 text-text-300" />
+                    <span className="flex-1 text-[13.5px] text-text-000">
+                      Add image
+                    </span>
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center gap-1" ref={menuRef}>
@@ -252,15 +323,16 @@ export default function ChatInput({
                   <div
                     role="menu"
                     className={cn(
-                      "absolute bottom-[calc(100%+10px)] right-0 z-30 p-1.5 rounded-xl border border-border-300 bg-bg-000 shadow-[0_24px_48px_-16px_rgba(0,0,0,.18),0_2px_8px_rgba(0,0,0,.06)] transition-[width] duration-100",
+                      "absolute bottom-[calc(100%+10px)] right-0 z-30 p-1.5 rounded-xl border border-border-300 bg-bg-000 shadow-[0_24px_48px_-16px_rgba(0,0,0,.18),0_2px_8px_rgba(0,0,0,.06)] transition-[width] duration-100 flex flex-col",
                       menuView === "providers" && providersViewMode === "card"
                         ? "w-[400px]"
                         : "w-[320px]"
                     )}
+                    style={{ maxHeight: "min(560px, calc(100vh - 140px))" }}
                     onClick={(e) => e.stopPropagation()}
                   >
                     {menuView === "main" && (
-                      <>
+                      <div className="overflow-y-auto">
                         {primary.map((m, i) => (
                           <div key={m.id}>
                             <ModelItem
@@ -288,70 +360,38 @@ export default function ChatInput({
                             <div className="px-3 pt-1.5 pb-0.5 text-[10.5px] tracking-[.08em] uppercase text-text-400">
                               Local · Ollama
                             </div>
-                            <div className="max-h-44 overflow-y-auto">
-                              {local.models.map((m) => {
-                                const id = toLocalId(m.name);
-                                const active = id === selectedModel;
-                                return (
-                                  <button
-                                    key={m.name}
-                                    type="button"
-                                    onClick={() => {
-                                      onModelChange(id);
-                                      setMenuOpen(false);
-                                    }}
-                                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left hover:bg-bg-100"
-                                  >
-                                    <div className="flex-1 min-w-0">
-                                      <div className="text-[14px] font-medium text-text-000 leading-tight truncate">
-                                        {m.name}
-                                      </div>
-                                      <div className="text-[11.5px] text-text-400 mt-0.5">
-                                        {(m.sizeBytes / 1024 ** 3).toFixed(1)} GB
-                                        {m.details?.parameter_size
-                                          ? ` · ${m.details.parameter_size}`
-                                          : ""}
-                                      </div>
+                            {local.models.map((m) => {
+                              const id = toLocalId(m.name);
+                              const active = id === selectedModel;
+                              return (
+                                <button
+                                  key={m.name}
+                                  type="button"
+                                  onClick={() => {
+                                    onModelChange(id);
+                                    setMenuOpen(false);
+                                  }}
+                                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left hover:bg-bg-100"
+                                >
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-[14px] font-medium text-text-000 leading-tight truncate">
+                                      {m.name}
                                     </div>
-                                    {active && (
-                                      <Check className="w-4 h-4 text-text-000 shrink-0" />
-                                    )}
-                                  </button>
-                                );
-                              })}
-                            </div>
+                                    <div className="text-[11.5px] text-text-400 mt-0.5">
+                                      {(m.sizeBytes / 1024 ** 3).toFixed(1)} GB
+                                      {m.details?.parameter_size
+                                        ? ` · ${m.details.parameter_size}`
+                                        : ""}
+                                    </div>
+                                  </div>
+                                  {active && (
+                                    <Check className="w-4 h-4 text-text-000 shrink-0" />
+                                  )}
+                                </button>
+                              );
+                            })}
                           </>
                         )}
-
-                        <div className="h-px bg-border-200 my-1.5 mx-1" />
-
-                        <button
-                          type="button"
-                          onClick={() => onThinkingModeChange(!thinkingMode)}
-                          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left hover:bg-bg-100"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <div className="text-[14px] font-medium text-text-000 leading-tight">
-                              Adaptive thinking
-                            </div>
-                            <div className="text-[12px] text-text-400 mt-0.5 leading-[1.35]">
-                              Thinks for more complex tasks
-                            </div>
-                          </div>
-                          <span
-                            className={cn(
-                              "relative h-5 w-9 shrink-0 rounded-full transition-colors",
-                              thinkingMode ? "bg-text-000" : "bg-bg-400"
-                            )}
-                          >
-                            <span
-                              className={cn(
-                                "absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
-                                thinkingMode && "translate-x-4"
-                              )}
-                            />
-                          </span>
-                        </button>
 
                         {providerGroups.length > 0 && (
                           <>
@@ -374,7 +414,7 @@ export default function ChatInput({
                             </button>
                           </>
                         )}
-                      </>
+                      </div>
                     )}
 
                     {menuView === "providers" && (
@@ -467,6 +507,7 @@ function ModelItem({
   onClick: () => void;
   label?: string;
 }) {
+  const meta = modelDisplayMeta(model);
   return (
     <button
       type="button"
@@ -475,59 +516,16 @@ function ModelItem({
     >
       <div className="flex-1 min-w-0">
         <div className="text-[14px] font-medium text-text-000 leading-tight truncate">
-          {label ?? model.id}
+          {label ?? meta.label}
         </div>
-        {model.description && (
+        {meta.description && (
           <div className="text-[12px] text-text-400 mt-0.5 leading-[1.35] line-clamp-2">
-            {model.description}
+            {meta.description}
           </div>
         )}
       </div>
       {active && <Check className="w-4 h-4 text-text-000 shrink-0" />}
     </button>
-  );
-}
-
-function ProviderLogo({
-  provider,
-  size = 28,
-}: {
-  provider: string;
-  size?: number;
-}) {
-  const url = providerLogoUrl(provider);
-  const initial = formatProviderName(provider).charAt(0).toUpperCase() || "·";
-  const invertCls = shouldInvertOnDark(provider) ? "dark:invert" : "";
-  return (
-    <span
-      className="relative inline-flex items-center justify-center rounded-full bg-bg-200 overflow-hidden flex-shrink-0"
-      style={{ width: size, height: size }}
-    >
-      {url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={url}
-          alt={provider}
-          loading="lazy"
-          className={cn("w-full h-full object-cover", invertCls)}
-          onError={(e) => {
-            const t = e.currentTarget as HTMLImageElement;
-            t.style.display = "none";
-            const sib = t.nextElementSibling as HTMLElement | null;
-            if (sib) sib.style.display = "flex";
-          }}
-        />
-      ) : null}
-      <span
-        className={cn(
-          "absolute inset-0 items-center justify-center text-text-200 font-semibold",
-          url ? "hidden" : "flex"
-        )}
-        style={{ fontSize: Math.round(size * 0.45) }}
-      >
-        {initial}
-      </span>
-    </span>
   );
 }
 
@@ -545,8 +543,8 @@ function ProvidersView({
   onSelect: (provider: string) => void;
 }) {
   return (
-    <div>
-      <div className="flex items-center gap-1 px-1 pt-0.5 pb-1.5">
+    <div className="flex flex-col min-h-0 flex-1">
+      <div className="flex items-center gap-1 px-1 pt-0.5 pb-1.5 shrink-0">
         <button
           type="button"
           onClick={onBack}
@@ -559,15 +557,15 @@ function ProvidersView({
         <div className="flex-1 text-[13.5px] font-medium text-text-000 px-1">
           Browse providers
         </div>
-        <div className="inline-flex gap-0.5 rounded-md border border-border-200 bg-bg-100 p-0.5">
+        <div className="inline-flex gap-0.5">
           <button
             type="button"
             onClick={() => onViewModeChange("list")}
             className={cn(
-              "inline-flex items-center justify-center h-6 w-6 rounded",
+              "inline-flex items-center justify-center h-7 w-7 rounded-md transition-colors",
               viewMode === "list"
-                ? "bg-bg-000 text-text-000 shadow-sm"
-                : "text-text-400 hover:text-text-000"
+                ? "bg-bg-200 text-text-000"
+                : "text-text-400 hover:bg-bg-100 hover:text-text-000"
             )}
             title="List view"
             aria-label="List view"
@@ -578,10 +576,10 @@ function ProvidersView({
             type="button"
             onClick={() => onViewModeChange("card")}
             className={cn(
-              "inline-flex items-center justify-center h-6 w-6 rounded",
+              "inline-flex items-center justify-center h-7 w-7 rounded-md transition-colors",
               viewMode === "card"
-                ? "bg-bg-000 text-text-000 shadow-sm"
-                : "text-text-400 hover:text-text-000"
+                ? "bg-bg-200 text-text-000"
+                : "text-text-400 hover:bg-bg-100 hover:text-text-000"
             )}
             title="Card view"
             aria-label="Card view"
@@ -590,13 +588,13 @@ function ProvidersView({
           </button>
         </div>
       </div>
-      <div className="h-px bg-border-200 mx-1 mb-1" />
+      <div className="h-px bg-border-200 mx-1 mb-1 shrink-0" />
       {groups.length === 0 ? (
         <div className="px-3 py-6 text-center text-[13px] text-text-400">
           No providers available
         </div>
       ) : viewMode === "list" ? (
-        <div className="max-h-[300px] overflow-y-auto">
+        <div className="overflow-y-auto min-h-0 flex-1">
           {groups.map((g) => (
             <button
               key={g.id}
@@ -618,7 +616,7 @@ function ProvidersView({
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-1.5 max-h-[340px] overflow-y-auto p-1">
+        <div className="grid grid-cols-2 gap-1.5 overflow-y-auto min-h-0 flex-1 p-1">
           {groups.map((g) => (
             <button
               key={g.id}
@@ -655,8 +653,8 @@ function ProviderModelsView({
   onSelect: (id: string) => void;
 }) {
   return (
-    <div>
-      <div className="flex items-center gap-1 px-1 pt-0.5 pb-1.5">
+    <div className="flex flex-col min-h-0 flex-1">
+      <div className="flex items-center gap-1 px-1 pt-0.5 pb-1.5 shrink-0">
         <button
           type="button"
           onClick={onBack}
@@ -676,8 +674,8 @@ function ProviderModelsView({
           </span>
         </div>
       </div>
-      <div className="h-px bg-border-200 mx-1 mb-1" />
-      <div className="max-h-[340px] overflow-y-auto">
+      <div className="h-px bg-border-200 mx-1 mb-1 shrink-0" />
+      <div className="overflow-y-auto min-h-0 flex-1">
         {group.models.map((m) => (
           <ModelItem
             key={m.id}

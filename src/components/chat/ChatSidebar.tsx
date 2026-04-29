@@ -112,7 +112,7 @@ export default function ChatSidebar({
         <div className="flex items-center gap-2.5 text-text-000">
           <UniroMark size={20} />
           <span className="text-[20px] font-semibold tracking-tight text-text-000">
-            Uniro
+            UNIRO
           </span>
         </div>
         <button

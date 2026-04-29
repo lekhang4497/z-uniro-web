@@ -9,6 +9,12 @@ import "katex/dist/katex.min.css";
 import { Copy, RefreshCw, Pencil, ThumbsUp, ThumbsDown, Check } from "lucide-react";
 import type { Message } from "@/types";
 import { cn } from "@/lib/utils";
+import {
+  extractProvider,
+  formatProviderName,
+  modelDisplayName,
+} from "@/lib/provider-display";
+import { ProviderLogo } from "./ProviderLogo";
 
 function normaliseLatex(text: string): string {
     const codeBlocks: string[] = [];
@@ -176,7 +182,7 @@ export default function MessageBubble({
         <div className="group relative flex w-full px-1 py-2 animate-fade-in-up assistant-message">
             <div className="flex-auto w-0 min-w-0">
                 {message.model && (
-                    <div className="mb-1 text-[11px] text-text-400">{message.model}</div>
+                    <ModelByline model={message.model} />
                 )}
 
                 <>
@@ -275,6 +281,27 @@ function EditForm({
                     Save
                 </button>
             </div>
+        </div>
+    );
+}
+
+function ModelByline({ model }: { model: string }) {
+    const provider = extractProvider(model);
+    const shortName = modelDisplayName(model);
+    return (
+        <div className="mb-1 inline-flex items-center gap-1.5 text-[11px] text-text-400">
+            {provider && <ProviderLogo provider={provider} size={14} />}
+            <span title={model}>
+                {provider ? (
+                    <>
+                        <span className="text-text-300">{formatProviderName(provider)}</span>
+                        <span className="mx-1 text-text-500">/</span>
+                        <span>{shortName}</span>
+                    </>
+                ) : (
+                    model
+                )}
+            </span>
         </div>
     );
 }

@@ -394,10 +394,13 @@ export default function ModelsPanel() {
                       <button
                         type="button"
                         onClick={() => doPull(m.id)}
-                        disabled={
-                          busy ||
-                          !status?.daemonRunning ||
-                          (fit?.verdict === "no")
+                        disabled={busy || fit?.verdict === "no"}
+                        title={
+                          fit?.verdict === "no"
+                            ? fit.reason
+                            : !status?.daemonRunning
+                              ? "Ollama daemon not running — clicking will surface the error"
+                              : undefined
                         }
                         className={cn(
                           "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium transition-colors",
@@ -478,10 +481,10 @@ export default function ModelsPanel() {
                 setCustomName("");
               }
             }}
-            disabled={!customName.trim() || !!activeName || !status?.daemonRunning}
+            disabled={!customName.trim() || !!activeName}
             className={cn(
               "inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-medium",
-              !customName.trim() || !!activeName || !status?.daemonRunning
+              !customName.trim() || !!activeName
                 ? "bg-bg-300 text-text-400 cursor-not-allowed"
                 : "bg-accent-000 text-accent-fg hover:bg-accent-100"
             )}

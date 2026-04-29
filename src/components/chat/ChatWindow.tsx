@@ -272,7 +272,7 @@ export default function ChatWindow({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingPrompt]);
 
-  const composer = (
+  const renderComposer = (placement: "above" | "below") => (
     <ChatInput
       onSend={handleSend}
       onStop={handleStop}
@@ -286,6 +286,7 @@ export default function ChatWindow({
       onImageAttach={onImageAttach}
       imageFile={imageFile}
       onImageRemove={onImageRemove}
+      dropdownPlacement={placement}
     />
   );
 
@@ -305,7 +306,7 @@ export default function ChatWindow({
             A calm place to think out loud. Start with a prompt, or pick a lane.
           </p>
 
-          <div className="w-full max-w-[720px]">{composer}</div>
+          <div className="w-full max-w-[720px]">{renderComposer("below")}</div>
 
           <div className="flex flex-wrap justify-center gap-2 mt-[18px]">
             {SUGGESTIONS.map((s) => (
@@ -327,7 +328,7 @@ export default function ChatWindow({
         <>
           <MessageList messages={conversation.messages} isStreaming={isStreaming} />
           <div className="bg-gradient-to-t from-background via-background/70 to-transparent pt-2">
-            <div className="mx-auto max-w-2xl">{composer}</div>
+            <div className="mx-auto max-w-2xl">{renderComposer("above")}</div>
             <div className="text-center text-text-400 text-[11px] pb-3 font-mono">
               {selectedModel || "uniro"} may be wrong. Check important things.
             </div>

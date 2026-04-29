@@ -49,6 +49,10 @@ interface ChatInputProps {
   onImageAttach: (file: File) => void;
   imageFile: File | null;
   onImageRemove: () => void;
+  // Where the model-picker / + popovers anchor relative to the bar.
+  // The greeting state (composer centered) opens "below"; in-chat docks
+  // sit at the bottom of the viewport, so default to "above".
+  dropdownPlacement?: "above" | "below";
 }
 
 export default function ChatInput({
@@ -64,6 +68,7 @@ export default function ChatInput({
   onImageAttach,
   imageFile,
   onImageRemove,
+  dropdownPlacement = "above",
 }: ChatInputProps) {
   const [input, setInput] = useState("");
   const [dragging, setDragging] = useState(false);
@@ -262,7 +267,12 @@ export default function ChatInput({
               {plusMenuOpen && (
                 <div
                   role="menu"
-                  className="absolute bottom-[calc(100%+8px)] left-0 z-30 w-[220px] p-1.5 rounded-xl border border-border-300 bg-bg-000 shadow-[0_24px_48px_-16px_rgba(0,0,0,.18),0_2px_8px_rgba(0,0,0,.06)]"
+                  className={cn(
+                    "absolute left-0 z-30 w-[220px] p-1.5 rounded-xl border border-border-300 bg-bg-000 shadow-[0_24px_48px_-16px_rgba(0,0,0,.18),0_2px_8px_rgba(0,0,0,.06)]",
+                    dropdownPlacement === "below"
+                      ? "top-[calc(100%+8px)]"
+                      : "bottom-[calc(100%+8px)]"
+                  )}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <button
@@ -323,7 +333,10 @@ export default function ChatInput({
                   <div
                     role="menu"
                     className={cn(
-                      "absolute bottom-[calc(100%+10px)] right-0 z-30 p-1.5 rounded-xl border border-border-300 bg-bg-000 shadow-[0_24px_48px_-16px_rgba(0,0,0,.18),0_2px_8px_rgba(0,0,0,.06)] transition-[width] duration-100 flex flex-col",
+                      "absolute right-0 z-30 p-1.5 rounded-xl border border-border-300 bg-bg-000 shadow-[0_24px_48px_-16px_rgba(0,0,0,.18),0_2px_8px_rgba(0,0,0,.06)] transition-[width] duration-100 flex flex-col",
+                      dropdownPlacement === "below"
+                        ? "top-[calc(100%+10px)]"
+                        : "bottom-[calc(100%+10px)]",
                       menuView === "providers" && providersViewMode === "card"
                         ? "w-[400px]"
                         : "w-[320px]"

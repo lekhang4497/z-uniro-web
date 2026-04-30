@@ -103,6 +103,19 @@ export default function ChatWindow({
       const controller = new AbortController();
       abortRef.current = controller;
 
+      // Local Ollama models are routed directly to the local daemon's
+      // OpenAI-compatible endpoint, bypassing the public backend (which
+      // can't reach the user's localhost). Cloud models go through the
+      // configured backend as usual. Hoisted out of the try so the catch
+      // block can tailor its error hint.
+      const isLocal = isLocalId(selectedModel);
+      const dispatchModel = isLocal
+        ? fromLocalId(selectedModel)
+        : selectedModel;
+      const dispatchUrl = isLocal
+        ? `${OLLAMA_BASE_URL}/v1/chat/completions`
+        : `${backendUrl}/v1/chat/completions`;
+
       try {
         let userContent: string | Array<Record<string, unknown>> = content;
         if (imageFile) {
@@ -118,18 +131,6 @@ export default function ChatWindow({
           content: m.content,
         }));
         apiMessages.push({ role: "user", content: userContent as string });
-
-        // Local Ollama models are routed directly to the local daemon's
-        // OpenAI-compatible endpoint, bypassing the public backend (which
-        // can't reach the user's localhost). Cloud models go through the
-        // configured backend as usual.
-        const isLocal = isLocalId(selectedModel);
-        const dispatchModel = isLocal
-          ? fromLocalId(selectedModel)
-          : selectedModel;
-        const dispatchUrl = isLocal
-          ? `${OLLAMA_BASE_URL}/v1/chat/completions`
-          : `${backendUrl}/v1/chat/completions`;
 
         const body: Record<string, unknown> = {
           model: dispatchModel,
@@ -234,11 +235,17 @@ export default function ChatWindow({
           // Content already captured incrementally
         } else {
           const errMsg = error instanceof Error ? error.message : "Unknown error";
+          // Tailor the hint to where we actually dispatched. When the user
+          // picked a local model, the fetch went to Ollama on :11434, not
+          // to the public backend on :8857.
+          const hint = isLocal
+            ? `Make sure Ollama is running on ${OLLAMA_BASE_URL} (try \`ollama serve\`, or open the Ollama menu-bar app on macOS).`
+            : t("chat.errorBackend");
           updateMessages([
             ...currentMessages,
             {
               role: "assistant",
-              content: `**Error:** ${errMsg}\n\n${t("chat.errorBackend")}`,
+              content: `**Error:** ${errMsg}\n\n${hint}`,
               model: "",
             },
           ]);

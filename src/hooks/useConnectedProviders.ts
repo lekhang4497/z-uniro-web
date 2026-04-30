@@ -4,22 +4,32 @@ import { useEffect, useState } from "react";
 
 export const CONNECTIONS_CHANGED_EVENT = "uniro:connections-changed";
 
+export interface ConnectionState {
+  /** Set of connected credential keys (provider names lowercased), or
+   *  `null` when not in the desktop app (web can't see local creds). */
+  keys: ReadonlySet<string> | null;
+  /** True if at least one stored credential is an API key (source ===
+   *  "manual"). Null when not in the desktop app. */
+  hasApiKey: boolean | null;
+}
+
 /**
- * Returns the set of connected credential keys (provider names) from the
- * desktop bridge's `auth.status()`. Refreshes on focus, every 60s, and
+ * Polls the desktop bridge's `auth.status()` and exposes a snapshot of
+ * the user's stored credentials. Refreshes on focus, every 60s, and
  * whenever a `uniro:connections-changed` event fires (e.g. after the
  * Connections tab successfully completes a login).
  *
- * Returns `null` when not running in the desktop app — callers should
- * treat that as "no gating, all providers enabled". The web build can't
- * see local credentials anyway.
+ * In the web build returns `{ keys: null, hasApiKey: null }` — callers
+ * should treat null as "unknown / no gating".
  */
-export function useConnectedProviders(): ReadonlySet<string> | null {
+export function useConnectedProviders(): ConnectionState {
   const isDesktop =
     typeof window !== "undefined" && !!window.uniro?.isDesktop;
 
-  const [keys, setKeys] = useState<Set<string> | null>(
-    isDesktop ? new Set() : null
+  const [state, setState] = useState<ConnectionState>(() =>
+    isDesktop
+      ? { keys: new Set<string>(), hasApiKey: false }
+      : { keys: null, hasApiKey: null }
   );
 
   useEffect(() => {
@@ -30,11 +40,15 @@ export function useConnectedProviders(): ReadonlySet<string> | null {
       try {
         const res = await window.uniro!.auth.status();
         if (cancelled) return;
-        const next = new Set<string>();
-        for (const e of res.entries) next.add(e.provider.toLowerCase());
-        setKeys(next);
+        const keys = new Set<string>();
+        let hasApiKey = false;
+        for (const e of res.entries) {
+          keys.add(e.provider.toLowerCase());
+          if (e.source === "manual") hasApiKey = true;
+        }
+        setState({ keys, hasApiKey });
       } catch {
-        /* keep last good set */
+        /* keep last good state */
       }
     };
 
@@ -53,7 +67,7 @@ export function useConnectedProviders(): ReadonlySet<string> | null {
     };
   }, [isDesktop]);
 
-  return keys;
+  return state;
 }
 
 /** Fire from ConnectionsPanel after a successful login/remove so the

@@ -27,10 +27,8 @@ import {
   useLocalModels,
 } from "@/hooks/useLocalModels";
 import {
-  connectActionLabel,
   formatProviderName,
   groupModelsByProvider,
-  isProviderConnected,
   modelDisplayMeta,
   modelDisplayName,
   type ProviderGroup,
@@ -99,7 +97,7 @@ export default function ChatInput({
   const [plusMenuOpen, setPlusMenuOpen] = useState(false);
   const plusMenuRef = useRef<HTMLDivElement>(null);
   const local = useLocalModels();
-  const connectedKeys = useConnectedProviders();
+  const connections = useConnectedProviders();
 
   // Close + menu on outside click.
   useEffect(() => {
@@ -433,7 +431,7 @@ export default function ChatInput({
                         groups={providerGroups}
                         viewMode={providersViewMode}
                         onViewModeChange={setProvidersViewMode}
-                        connectedKeys={connectedKeys}
+                        hasApiKey={connections.hasApiKey}
                         onBack={() => setMenuView("main")}
                         onSelect={(id) => {
                           if (id === API_KEY_PROVIDER_ID) {
@@ -443,7 +441,7 @@ export default function ChatInput({
                           setSelectedProvider(id);
                           setMenuView("providerModels");
                         }}
-                        onConnect={() => {
+                        onApiKeyConnect={() => {
                           setMenuOpen(false);
                           onOpenSettings?.("connections");
                         }}
@@ -577,20 +575,22 @@ function ProvidersView({
   groups,
   viewMode,
   onViewModeChange,
-  connectedKeys,
+  hasApiKey,
   onBack,
   onSelect,
-  onConnect,
+  onApiKeyConnect,
 }: {
   groups: ProviderGroup[];
   viewMode: "list" | "card";
   onViewModeChange: (m: "list" | "card") => void;
-  connectedKeys: ReadonlySet<string> | null;
+  // null = web build (treat as enabled); false = desktop with no API key.
+  hasApiKey: boolean | null;
   onBack: () => void;
   onSelect: (provider: string) => void;
-  onConnect: (provider: string) => void;
+  onApiKeyConnect: () => void;
 }) {
   const apiKeyModelCount = groups.reduce((acc, g) => acc + g.models.length, 0);
+  const apiKeyEnabled = hasApiKey !== false;
   return (
     <div className="flex flex-col min-h-0 flex-1">
       <div className="flex items-center gap-1 px-1 pt-0.5 pb-1.5 shrink-0">
@@ -646,142 +646,141 @@ function ProvidersView({
         <div className="overflow-y-auto min-h-0 flex-1">
           <button
             type="button"
-            onClick={() => onSelect(API_KEY_PROVIDER_ID)}
-            title="Models served via your UniRo API key"
-            className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left hover:bg-bg-100"
+            onClick={() =>
+              apiKeyEnabled ? onSelect(API_KEY_PROVIDER_ID) : onApiKeyConnect()
+            }
+            title={
+              apiKeyEnabled
+                ? "Models served via your UniRo API key"
+                : "Add an API key to enable this path"
+            }
+            className={cn(
+              "flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left",
+              apiKeyEnabled ? "hover:bg-bg-100" : "hover:bg-bg-100/60"
+            )}
           >
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-bg-200 text-text-000 shrink-0">
+            <div
+              className={cn(
+                "flex h-7 w-7 items-center justify-center rounded-lg bg-bg-200 shrink-0",
+                apiKeyEnabled ? "text-text-000" : "text-text-300"
+              )}
+            >
               <KeyRound className="w-3.5 h-3.5" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[13.5px] font-medium text-text-000 truncate">
+              <div
+                className={cn(
+                  "text-[13.5px] font-medium truncate",
+                  apiKeyEnabled ? "text-text-000" : "text-text-300"
+                )}
+              >
                 Through API Key
               </div>
-              <div className="text-[11.5px] text-text-400">
-                Routed via UniRo · {apiKeyModelCount} model
-                {apiKeyModelCount === 1 ? "" : "s"}
-              </div>
+              {apiKeyEnabled ? (
+                <div className="text-[11.5px] text-text-400">
+                  Routed via UniRo · {apiKeyModelCount} model
+                  {apiKeyModelCount === 1 ? "" : "s"}
+                </div>
+              ) : (
+                <div className="text-[10.5px] text-text-300 mt-0.5 inline-flex items-center gap-1.5 rounded-md border border-border-300 bg-bg-200 px-1.5 py-px font-medium">
+                  <Plug className="w-2.5 h-2.5" />
+                  Add API key
+                </div>
+              )}
             </div>
             <ChevronRight className="w-3.5 h-3.5 text-text-400 shrink-0" />
           </button>
           <div className="h-px bg-border-200 my-1 mx-1" />
-          {groups.map((g) => {
-            const enabled = isProviderConnected(g.id, connectedKeys);
-            const cta = connectActionLabel(g.id);
-            return (
-              <button
-                key={g.id}
-                type="button"
-                onClick={() => (enabled ? onSelect(g.id) : onConnect(g.id))}
-                title={enabled ? formatProviderName(g.id) : cta}
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left",
-                  enabled
-                    ? "hover:bg-bg-100"
-                    : "hover:bg-bg-100/60 opacity-90"
-                )}
-              >
-                <ProviderLogo
-                  provider={g.id}
-                  size={28}
-                  className={enabled ? "" : "opacity-50"}
-                />
-                <div className="flex-1 min-w-0">
-                  <div
-                    className={cn(
-                      "text-[13.5px] font-medium truncate",
-                      enabled ? "text-text-000" : "text-text-300"
-                    )}
-                  >
-                    {formatProviderName(g.id)}
-                  </div>
-                  {enabled ? (
-                    <div className="text-[11.5px] text-text-400">
-                      {g.models.length} model{g.models.length === 1 ? "" : "s"}
-                    </div>
-                  ) : (
-                    <div className="text-[10.5px] text-text-300 mt-0.5 inline-flex items-center gap-1.5 rounded-md border border-border-300 bg-bg-200 px-1.5 py-px font-medium">
-                      <Plug className="w-2.5 h-2.5" />
-                      {cta}
-                    </div>
-                  )}
+          {groups.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              onClick={() => onSelect(g.id)}
+              title={formatProviderName(g.id)}
+              className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left hover:bg-bg-100"
+            >
+              <ProviderLogo provider={g.id} size={28} />
+              <div className="flex-1 min-w-0">
+                <div className="text-[13.5px] font-medium text-text-000 truncate">
+                  {formatProviderName(g.id)}
                 </div>
-                <ChevronRight
-                  className={cn(
-                    "w-3.5 h-3.5 shrink-0",
-                    enabled ? "text-text-400" : "text-text-500"
-                  )}
-                />
-              </button>
-            );
-          })}
+                <div className="text-[11.5px] text-text-400">
+                  {g.models.length} model{g.models.length === 1 ? "" : "s"}
+                </div>
+              </div>
+              <ChevronRight className="w-3.5 h-3.5 text-text-400 shrink-0" />
+            </button>
+          ))}
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-1.5 overflow-y-auto min-h-0 flex-1 p-1">
           <button
             type="button"
-            onClick={() => onSelect(API_KEY_PROVIDER_ID)}
-            title="Models served via your UniRo API key"
-            className="col-span-2 flex items-center gap-3 rounded-lg border border-border-200 bg-bg-000 px-3 py-3 text-left transition-colors hover:border-text-200"
+            onClick={() =>
+              apiKeyEnabled ? onSelect(API_KEY_PROVIDER_ID) : onApiKeyConnect()
+            }
+            title={
+              apiKeyEnabled
+                ? "Models served via your UniRo API key"
+                : "Add an API key to enable this path"
+            }
+            className={cn(
+              "col-span-2 flex items-center gap-3 rounded-lg border bg-bg-000 px-3 py-3 text-left transition-colors",
+              apiKeyEnabled
+                ? "border-border-200 hover:border-text-200"
+                : "border-border-200/70 hover:border-border-300"
+            )}
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-bg-200 text-text-000 shrink-0">
+            <div
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-lg bg-bg-200 shrink-0",
+                apiKeyEnabled ? "text-text-000" : "text-text-300"
+              )}
+            >
               <KeyRound className="w-4 h-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[13px] font-medium text-text-000 truncate">
+              <div
+                className={cn(
+                  "text-[13px] font-medium truncate",
+                  apiKeyEnabled ? "text-text-000" : "text-text-300"
+                )}
+              >
                 Through API Key
               </div>
-              <div className="text-[11px] text-text-400 mt-0.5">
-                Routed via UniRo · {apiKeyModelCount} model
-                {apiKeyModelCount === 1 ? "" : "s"}
-              </div>
+              {apiKeyEnabled ? (
+                <div className="text-[11px] text-text-400 mt-0.5">
+                  Routed via UniRo · {apiKeyModelCount} model
+                  {apiKeyModelCount === 1 ? "" : "s"}
+                </div>
+              ) : (
+                <div className="text-[10px] text-text-300 mt-1 inline-flex items-center gap-1 rounded-md border border-border-300 bg-bg-200 px-1.5 py-px font-medium">
+                  <Plug className="w-2.5 h-2.5" />
+                  Add API key
+                </div>
+              )}
             </div>
             <ChevronRight className="w-3.5 h-3.5 text-text-400 shrink-0" />
           </button>
-          {groups.map((g) => {
-            const enabled = isProviderConnected(g.id, connectedKeys);
-            const cta = connectActionLabel(g.id);
-            return (
-              <button
-                key={g.id}
-                type="button"
-                onClick={() => (enabled ? onSelect(g.id) : onConnect(g.id))}
-                title={enabled ? formatProviderName(g.id) : cta}
-                className={cn(
-                  "flex flex-col items-start gap-2 rounded-lg border bg-bg-000 px-3 py-3 text-left transition-colors",
-                  enabled
-                    ? "border-border-200 hover:border-text-200"
-                    : "border-border-200/70 hover:border-border-300 opacity-90"
-                )}
-              >
-                <ProviderLogo
-                  provider={g.id}
-                  size={32}
-                  className={enabled ? "" : "opacity-50"}
-                />
-                <div className="min-w-0 w-full">
-                  <div
-                    className={cn(
-                      "text-[13px] font-medium truncate",
-                      enabled ? "text-text-000" : "text-text-300"
-                    )}
-                  >
-                    {formatProviderName(g.id)}
-                  </div>
-                  {enabled ? (
-                    <div className="text-[11px] text-text-400 mt-0.5">
-                      {g.models.length} model{g.models.length === 1 ? "" : "s"}
-                    </div>
-                  ) : (
-                    <div className="text-[10px] text-text-300 mt-1 inline-flex items-center gap-1 rounded-md border border-border-300 bg-bg-200 px-1.5 py-px font-medium">
-                      <Plug className="w-2.5 h-2.5" />
-                      {cta}
-                    </div>
-                  )}
+          {groups.map((g) => (
+            <button
+              key={g.id}
+              type="button"
+              onClick={() => onSelect(g.id)}
+              title={formatProviderName(g.id)}
+              className="flex flex-col items-start gap-2 rounded-lg border border-border-200 bg-bg-000 px-3 py-3 text-left transition-colors hover:border-text-200"
+            >
+              <ProviderLogo provider={g.id} size={32} />
+              <div className="min-w-0 w-full">
+                <div className="text-[13px] font-medium truncate text-text-000">
+                  {formatProviderName(g.id)}
                 </div>
-              </button>
-            );
-          })}
+                <div className="text-[11px] text-text-400 mt-0.5">
+                  {g.models.length} model{g.models.length === 1 ? "" : "s"}
+                </div>
+              </div>
+            </button>
+          ))}
         </div>
       )}
     </div>

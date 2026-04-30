@@ -40,8 +40,11 @@ export interface CliStatusResult {
 
 export interface LoginProgressEvent {
   provider: string;
-  channel: "stdout" | "stderr";
+  channel: "stdout" | "stderr" | "event";
   line: string;
+  authUrl?: string;
+  userCode?: string;
+  verificationUri?: string;
 }
 
 export interface LoginResult {

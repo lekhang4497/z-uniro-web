@@ -9,7 +9,9 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
+  HardDrive,
   ImageIcon,
+  KeyRound,
   LayoutGrid,
   List as ListIcon,
   Mic,
@@ -37,8 +39,17 @@ import { useConnectedProviders } from "@/hooks/useConnectedProviders";
 import { ProviderLogo } from "./ProviderLogo";
 import { cn } from "@/lib/utils";
 
-type MenuView = "main" | "providers" | "providerModels";
+type MenuView =
+  | "main"
+  | "providers"
+  | "providerModels"
+  | "localModels"
+  | "apiKeyModels";
 type ProvidersViewMode = "list" | "card";
+
+// Synthetic provider id used by the "Through API Key" entry. Matches no real
+// model prefix, so it can't collide with `groupModelsByProvider` output.
+const API_KEY_PROVIDER_ID = "__uniro_api_key__";
 
 interface ChatInputProps {
   onSend: (content: string) => void;
@@ -355,20 +366,16 @@ export default function ChatInput({
                   >
                     {menuView === "main" && (
                       <div className="overflow-y-auto">
-                        {primary.map((m, i) => (
-                          <div key={m.id}>
-                            <ModelItem
-                              model={m}
-                              active={m.id === selectedModel}
-                              onClick={() => {
-                                onModelChange(m.id);
-                                setMenuOpen(false);
-                              }}
-                            />
-                            {i === 0 && (
-                              <div className="h-px bg-border-200 my-1.5 mx-1" />
-                            )}
-                          </div>
+                        {primary.map((m) => (
+                          <ModelItem
+                            key={m.id}
+                            model={m}
+                            active={m.id === selectedModel}
+                            onClick={() => {
+                              onModelChange(m.id);
+                              setMenuOpen(false);
+                            }}
+                          />
                         ))}
                         {primary.length === 0 && (
                           <div className="px-3 py-2.5 text-[13px] text-text-400">
@@ -376,65 +383,47 @@ export default function ChatInput({
                           </div>
                         )}
 
-                        {local.reachable && local.models.length > 0 && (
-                          <>
-                            <div className="h-px bg-border-200 my-1.5 mx-1" />
-                            <div className="px-3 pt-1.5 pb-0.5 text-[10.5px] tracking-[.08em] uppercase text-text-400">
-                              Local · Ollama
-                            </div>
-                            {local.models.map((m) => {
-                              const id = toLocalId(m.name);
-                              const active = id === selectedModel;
-                              return (
-                                <button
-                                  key={m.name}
-                                  type="button"
-                                  onClick={() => {
-                                    onModelChange(id);
-                                    setMenuOpen(false);
-                                  }}
-                                  className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left hover:bg-bg-100"
-                                >
-                                  <div className="flex-1 min-w-0">
-                                    <div className="text-[14px] font-medium text-text-000 leading-tight truncate">
-                                      {m.name}
-                                    </div>
-                                    <div className="text-[11.5px] text-text-400 mt-0.5">
-                                      {(m.sizeBytes / 1024 ** 3).toFixed(1)} GB
-                                      {m.details?.parameter_size
-                                        ? ` · ${m.details.parameter_size}`
-                                        : ""}
-                                    </div>
-                                  </div>
-                                  {active && (
-                                    <Check className="w-4 h-4 text-text-000 shrink-0" />
-                                  )}
-                                </button>
-                              );
-                            })}
-                          </>
-                        )}
+                        {(local.reachable && local.models.length > 0) ||
+                        providerGroups.length > 0 ? (
+                          <div className="h-px bg-border-200 my-1.5 mx-1" />
+                        ) : null}
 
-                        {providerGroups.length > 0 && (
-                          <>
-                            <div className="h-px bg-border-200 my-1.5 mx-1" />
-                            <button
-                              type="button"
-                              onClick={() => setMenuView("providers")}
-                              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left hover:bg-bg-100"
-                            >
-                              <div className="flex-1 min-w-0">
+                        {local.reachable && local.models.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setMenuView("localModels")}
+                            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left hover:bg-bg-100"
+                          >
+                            <HardDrive className="w-4 h-4 text-text-300 shrink-0" />
+                            <div className="flex-1 min-w-0">
                                 <div className="text-[14px] font-medium text-text-000 leading-tight">
-                                  More models
+                                  Local models
                                 </div>
                                 <div className="text-[12px] text-text-400 mt-0.5 leading-[1.35]">
-                                  Browse by provider · {providerGroups.length}{" "}
-                                  providers
+                                  {local.models.length} on Ollama
                                 </div>
                               </div>
                               <ChevronRight className="w-3.5 h-3.5 text-text-400" />
-                            </button>
-                          </>
+                          </button>
+                        )}
+
+                        {providerGroups.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setMenuView("providers")}
+                            className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left hover:bg-bg-100"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[14px] font-medium text-text-000 leading-tight">
+                                More models
+                              </div>
+                              <div className="text-[12px] text-text-400 mt-0.5 leading-[1.35]">
+                                Browse by provider · {providerGroups.length}{" "}
+                                providers
+                              </div>
+                            </div>
+                            <ChevronRight className="w-3.5 h-3.5 text-text-400" />
+                          </button>
                         )}
                       </div>
                     )}
@@ -447,6 +436,10 @@ export default function ChatInput({
                         connectedKeys={connectedKeys}
                         onBack={() => setMenuView("main")}
                         onSelect={(id) => {
+                          if (id === API_KEY_PROVIDER_ID) {
+                            setMenuView("apiKeyModels");
+                            return;
+                          }
                           setSelectedProvider(id);
                           setMenuView("providerModels");
                         }}
@@ -460,6 +453,30 @@ export default function ChatInput({
                     {menuView === "providerModels" && activeProviderGroup && (
                       <ProviderModelsView
                         group={activeProviderGroup}
+                        selectedModel={selectedModel}
+                        onBack={() => setMenuView("providers")}
+                        onSelect={(id) => {
+                          onModelChange(id);
+                          setMenuOpen(false);
+                        }}
+                      />
+                    )}
+
+                    {menuView === "localModels" && (
+                      <LocalModelsView
+                        models={local.models}
+                        selectedModel={selectedModel}
+                        onBack={() => setMenuView("main")}
+                        onSelect={(id) => {
+                          onModelChange(id);
+                          setMenuOpen(false);
+                        }}
+                      />
+                    )}
+
+                    {menuView === "apiKeyModels" && (
+                      <ApiKeyModelsView
+                        models={backendModels}
                         selectedModel={selectedModel}
                         onBack={() => setMenuView("providers")}
                         onSelect={(id) => {
@@ -573,6 +590,7 @@ function ProvidersView({
   onSelect: (provider: string) => void;
   onConnect: (provider: string) => void;
 }) {
+  const apiKeyModelCount = groups.reduce((acc, g) => acc + g.models.length, 0);
   return (
     <div className="flex flex-col min-h-0 flex-1">
       <div className="flex items-center gap-1 px-1 pt-0.5 pb-1.5 shrink-0">
@@ -626,6 +644,27 @@ function ProvidersView({
         </div>
       ) : viewMode === "list" ? (
         <div className="overflow-y-auto min-h-0 flex-1">
+          <button
+            type="button"
+            onClick={() => onSelect(API_KEY_PROVIDER_ID)}
+            title="Models served via your UniRo API key"
+            className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left hover:bg-bg-100"
+          >
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-bg-200 text-text-000 shrink-0">
+              <KeyRound className="w-3.5 h-3.5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[13.5px] font-medium text-text-000 truncate">
+                Through API Key
+              </div>
+              <div className="text-[11.5px] text-text-400">
+                Routed via UniRo · {apiKeyModelCount} model
+                {apiKeyModelCount === 1 ? "" : "s"}
+              </div>
+            </div>
+            <ChevronRight className="w-3.5 h-3.5 text-text-400 shrink-0" />
+          </button>
+          <div className="h-px bg-border-200 my-1 mx-1" />
           {groups.map((g) => {
             const enabled = isProviderConnected(g.id, connectedKeys);
             const cta = connectActionLabel(g.id);
@@ -679,6 +718,26 @@ function ProvidersView({
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-1.5 overflow-y-auto min-h-0 flex-1 p-1">
+          <button
+            type="button"
+            onClick={() => onSelect(API_KEY_PROVIDER_ID)}
+            title="Models served via your UniRo API key"
+            className="col-span-2 flex items-center gap-3 rounded-lg border border-border-200 bg-bg-000 px-3 py-3 text-left transition-colors hover:border-text-200"
+          >
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-bg-200 text-text-000 shrink-0">
+              <KeyRound className="w-4 h-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[13px] font-medium text-text-000 truncate">
+                Through API Key
+              </div>
+              <div className="text-[11px] text-text-400 mt-0.5">
+                Routed via UniRo · {apiKeyModelCount} model
+                {apiKeyModelCount === 1 ? "" : "s"}
+              </div>
+            </div>
+            <ChevronRight className="w-3.5 h-3.5 text-text-400 shrink-0" />
+          </button>
           {groups.map((g) => {
             const enabled = isProviderConnected(g.id, connectedKeys);
             const cta = connectActionLabel(g.id);
@@ -773,6 +832,166 @@ function ProviderModelsView({
             onClick={() => onSelect(m.id)}
           />
         ))}
+      </div>
+    </div>
+  );
+}
+
+function LocalModelsView({
+  models,
+  selectedModel,
+  onBack,
+  onSelect,
+}: {
+  models: ReturnType<typeof useLocalModels>["models"];
+  selectedModel: string;
+  onBack: () => void;
+  onSelect: (id: string) => void;
+}) {
+  return (
+    <div className="flex flex-col min-h-0 flex-1">
+      <div className="flex items-center gap-1 px-1 pt-0.5 pb-1.5 shrink-0">
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-text-300 hover:bg-bg-100 hover:text-text-000"
+          title="Back"
+          aria-label="Back"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </button>
+        <div className="flex-1 flex items-center gap-2 min-w-0 px-1">
+          <HardDrive className="w-4 h-4 text-text-300" />
+          <div className="text-[13.5px] font-medium text-text-000 truncate">
+            Local · Ollama
+          </div>
+          <span className="text-[11.5px] text-text-400 ml-auto">
+            {models.length}
+          </span>
+        </div>
+      </div>
+      <div className="h-px bg-border-200 mx-1 mb-1 shrink-0" />
+      <div className="overflow-y-auto min-h-0 flex-1">
+        {models.map((m) => {
+          const id = toLocalId(m.name);
+          const active = id === selectedModel;
+          return (
+            <button
+              key={m.name}
+              type="button"
+              onClick={() => onSelect(id)}
+              className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left hover:bg-bg-100"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="text-[14px] font-medium text-text-000 leading-tight truncate">
+                  {m.name}
+                </div>
+                <div className="text-[11.5px] text-text-400 mt-0.5">
+                  {(m.sizeBytes / 1024 ** 3).toFixed(1)} GB
+                  {m.details?.parameter_size
+                    ? ` · ${m.details.parameter_size}`
+                    : ""}
+                </div>
+              </div>
+              {active && (
+                <Check className="w-4 h-4 text-text-000 shrink-0" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ApiKeyModelsView({
+  models,
+  selectedModel,
+  onBack,
+  onSelect,
+}: {
+  models: BackendModel[];
+  selectedModel: string;
+  onBack: () => void;
+  onSelect: (id: string) => void;
+}) {
+  // Flatten every backend `type:"model"` so the user sees one list of
+  // everything routable through the UniRo API key, with provider context.
+  const flat = useMemo(() => {
+    return models
+      .filter((m) => m.type === "model")
+      .slice()
+      .sort((a, b) => a.id.localeCompare(b.id));
+  }, [models]);
+
+  return (
+    <div className="flex flex-col min-h-0 flex-1">
+      <div className="flex items-center gap-1 px-1 pt-0.5 pb-1.5 shrink-0">
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-text-300 hover:bg-bg-100 hover:text-text-000"
+          title="Back"
+          aria-label="Back"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </button>
+        <div className="flex-1 flex items-center gap-2 min-w-0 px-1">
+          <KeyRound className="w-4 h-4 text-text-300" />
+          <div className="text-[13.5px] font-medium text-text-000 truncate">
+            Through API Key
+          </div>
+          <span className="text-[11.5px] text-text-400 ml-auto">
+            {flat.length}
+          </span>
+        </div>
+      </div>
+      <div className="h-px bg-border-200 mx-1 mb-1 shrink-0" />
+      <div className="overflow-y-auto min-h-0 flex-1">
+        {flat.length === 0 ? (
+          <div className="px-3 py-6 text-center text-[13px] text-text-400">
+            No models reachable via the API key.
+          </div>
+        ) : (
+          flat.map((m) => {
+            const provider = (() => {
+              const i = m.id.indexOf("/");
+              return i > 0 ? m.id.slice(0, i) : "";
+            })();
+            const name = (() => {
+              const i = m.id.indexOf("/");
+              return i > 0 ? m.id.slice(i + 1) : m.id;
+            })();
+            const active = m.id === selectedModel;
+            return (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => onSelect(m.id)}
+                className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-left hover:bg-bg-100"
+              >
+                {provider ? (
+                  <ProviderLogo provider={provider} size={20} />
+                ) : (
+                  <div className="w-5 h-5 shrink-0" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="text-[14px] font-medium text-text-000 leading-tight truncate">
+                    {name}
+                  </div>
+                  {provider && (
+                    <div className="text-[11.5px] text-text-400 mt-0.5 truncate">
+                      {formatProviderName(provider)}
+                    </div>
+                  )}
+                </div>
+                {active && (
+                  <Check className="w-4 h-4 text-text-000 shrink-0" />
+                )}
+              </button>
+            );
+          })
+        )}
       </div>
     </div>
   );

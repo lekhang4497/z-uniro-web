@@ -126,6 +126,18 @@ function ChatPageInner() {
     setPendingPrompt(prompt);
   }, [searchParams, router]);
 
+  const activeConvIdResolved = activeConversation.id;
+  const updateActiveMessages = useCallback(
+    (updater: Message[] | ((prev: Message[]) => Message[])) =>
+      updateMessages(activeConvIdResolved, updater),
+    [activeConvIdResolved, updateMessages]
+  );
+  const handleImageRemove = useCallback(() => setImageFile(null), []);
+  const handlePendingPromptConsumed = useCallback(
+    () => setPendingPrompt(null),
+    []
+  );
+
   const hasMessages = activeConversation.messages.length > 0;
 
   return (
@@ -165,18 +177,16 @@ function ChatPageInner() {
             conversation={activeConversation}
             selectedModel={selectedModel}
             onModelChange={setSelectedModel}
-            updateMessages={(updater) =>
-              updateMessages(activeConversation.id, updater)
-            }
+            updateMessages={updateActiveMessages}
             backendModels={backendModels}
             modelsLoading={modelsLoading}
             thinkingMode={thinkingMode}
             onThinkingModeChange={setThinkingMode}
             imageFile={imageFile}
             onImageAttach={setImageFile}
-            onImageRemove={() => setImageFile(null)}
+            onImageRemove={handleImageRemove}
             pendingPrompt={pendingPrompt}
-            onPendingPromptConsumed={() => setPendingPrompt(null)}
+            onPendingPromptConsumed={handlePendingPromptConsumed}
             onOpenSettings={openSettings}
           />
         )}

@@ -165,42 +165,73 @@ export default function ChatWindow({
         let modelName = "";
         let buffer = "";
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        // Coalesce per-chunk renders to one per animation frame. SSE chunks
+        // can arrive 50–100×/sec; React can't usefully render that fast and
+        // the markdown re-parse on every chunk is expensive. We capture the
+        // latest content in a ref-like closure and flush on rAF.
+        let pendingFlush = 0;
+        const flush = () => {
+          pendingFlush = 0;
+          updateMessages([
+            ...currentMessages,
+            {
+              role: "assistant",
+              content: accumulatedContent,
+              model: modelName,
+            },
+          ]);
+        };
+        const scheduleFlush = () => {
+          if (pendingFlush !== 0) return;
+          pendingFlush = requestAnimationFrame(flush);
+        };
+        const cancelFlush = () => {
+          if (pendingFlush !== 0) {
+            cancelAnimationFrame(pendingFlush);
+            pendingFlush = 0;
+          }
+        };
 
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split("\n");
-          buffer = lines.pop() ?? "";
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-          for (const line of lines) {
-            if (!line.startsWith("data: ")) continue;
-            const data = line.slice(6).trim();
-            if (data === "[DONE]") continue;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() ?? "";
 
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.error) {
-                accumulatedContent += `\n\n**Error:** ${parsed.error.message}`;
-                break;
+            for (const line of lines) {
+              if (!line.startsWith("data: ")) continue;
+              const data = line.slice(6).trim();
+              if (data === "[DONE]") continue;
+
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed.error) {
+                  accumulatedContent += `\n\n**Error:** ${parsed.error.message}`;
+                  break;
+                }
+
+                const delta = parsed.choices?.[0]?.delta;
+                if (delta?.content) {
+                  accumulatedContent += delta.content;
+                }
+                if (parsed.model && !modelName) {
+                  modelName = parsed.model;
+                }
+
+                scheduleFlush();
+              } catch {
+                // skip malformed chunks
               }
-
-              const delta = parsed.choices?.[0]?.delta;
-              if (delta?.content) {
-                accumulatedContent += delta.content;
-              }
-              if (parsed.model && !modelName) {
-                modelName = parsed.model;
-              }
-
-              updateMessages([
-                ...currentMessages,
-                { role: "assistant", content: accumulatedContent, model: modelName },
-              ]);
-            } catch {
-              // skip malformed chunks
             }
           }
+        } finally {
+          // Drop any pending rAF — the post-loop final updateMessages call
+          // below is authoritative and we don't want a stale flush running
+          // after it lands.
+          cancelFlush();
         }
 
         const trailingLine = buffer.trim();

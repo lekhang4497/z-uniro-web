@@ -107,7 +107,7 @@ function ThinkingBlock({ content, isStreaming }: { content: string; isStreaming?
     );
 }
 
-export default function MessageBubble({
+function MessageBubbleImpl({
     message,
     isStreaming,
     onRegenerate,
@@ -223,6 +223,12 @@ export default function MessageBubble({
         </div>
     );
 }
+
+// Memoized: while streaming, only the last bubble's `message` reference
+// changes — older bubbles keep the same object and skip the re-render
+// (and the ReactMarkdown reconciliation that goes with it).
+const MessageBubble = React.memo(MessageBubbleImpl);
+export default MessageBubble;
 
 function ActionBtn({
     children,

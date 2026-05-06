@@ -24,8 +24,8 @@ import { useConnectedProviders } from "@/hooks/useConnectedProviders";
 
 /**
  * If the selected model can be served via a connected subscription, return
- * the provider id; otherwise null. Phase 1 covers Anthropic / Claude Pro;
- * Gemini, OpenAI, etc. land in subsequent phases.
+ * the provider id; otherwise null. OpenAI / Antigravity / Copilot land in
+ * subsequent phases.
  */
 function detectSubscriptionProvider(
   modelId: string,
@@ -38,6 +38,15 @@ function detectSubscriptionProvider(
     (lower.startsWith("anthropic/") || lower.includes("claude"))
   ) {
     return "anthropic";
+  }
+  if (
+    oauth.has("gemini") &&
+    (lower.startsWith("gemini/") ||
+      lower.startsWith("google/") ||
+      lower.startsWith("gemini-") ||
+      lower.includes("/gemini-"))
+  ) {
+    return "gemini";
   }
   return null;
 }

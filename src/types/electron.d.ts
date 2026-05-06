@@ -53,6 +53,31 @@ export interface LoginResult {
   output: string;
 }
 
+// ---------- Subscription chat dispatch ----------
+
+export interface SubscriptionChatMessage {
+  role: "user" | "assistant" | "system";
+  content: string | Array<Record<string, unknown>>;
+}
+
+export interface SubscriptionChatRequest {
+  provider: string;
+  model: string;
+  messages: SubscriptionChatMessage[];
+  thinking?: boolean;
+  maxTokens?: number;
+}
+
+export interface SubscriptionChatChunk {
+  model?: string;
+  content?: string;
+  finished?: boolean;
+}
+
+export interface SubscriptionChatDone {
+  error: string | null;
+}
+
 // ---------- Models / local runtime ----------
 
 export interface SystemInfo {
@@ -127,6 +152,15 @@ export interface UniroDesktopBridge {
   app: {
     openExternal: (url: string) => Promise<void>;
     getVersion: () => Promise<string>;
+  };
+  chat: {
+    streamSubscription: (
+      request: SubscriptionChatRequest,
+      handlers: {
+        onChunk: (chunk: SubscriptionChatChunk) => void;
+        onDone: (done: SubscriptionChatDone) => void;
+      }
+    ) => { abort: () => void };
   };
 }
 

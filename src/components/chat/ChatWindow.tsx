@@ -20,6 +20,27 @@ import {
   isLocalId,
   OLLAMA_BASE_URL,
 } from "@/hooks/useLocalModels";
+import { useConnectedProviders } from "@/hooks/useConnectedProviders";
+
+/**
+ * If the selected model can be served via a connected subscription, return
+ * the provider id; otherwise null. Phase 1 covers Anthropic / Claude Pro;
+ * Gemini, OpenAI, etc. land in subsequent phases.
+ */
+function detectSubscriptionProvider(
+  modelId: string,
+  oauth: ReadonlySet<string> | null
+): string | null {
+  if (!oauth) return null;
+  const lower = modelId.toLowerCase();
+  if (
+    oauth.has("anthropic") &&
+    (lower.startsWith("anthropic/") || lower.includes("claude"))
+  ) {
+    return "anthropic";
+  }
+  return null;
+}
 
 type Updater = Message[] | ((prev: Message[]) => Message[]);
 
@@ -83,11 +104,17 @@ export default function ChatWindow({
 }: ChatWindowProps) {
   const [isStreaming, setIsStreaming] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  // Subscription streams use a provider-specific abort handle (the IPC
+  // bridge returns one) instead of the fetch AbortController. Tracked
+  // separately so handleStop can abort either flavor.
+  const subAbortRef = useRef<{ abort: () => void } | null>(null);
   const t = useTranslations();
   const backendUrl = useBackendUrl();
+  const connections = useConnectedProviders();
 
   const handleStop = useCallback(() => {
     abortRef.current?.abort();
+    subAbortRef.current?.abort();
   }, []);
 
   const handleSend = useCallback(
@@ -103,18 +130,55 @@ export default function ChatWindow({
       const controller = new AbortController();
       abortRef.current = controller;
 
-      // Local Ollama models are routed directly to the local daemon's
-      // OpenAI-compatible endpoint, bypassing the public backend (which
-      // can't reach the user's localhost). Cloud models go through the
-      // configured backend as usual. Hoisted out of the try so the catch
-      // block can tailor its error hint.
-      const isLocal = isLocalId(selectedModel);
+      // Pick a dispatch route. Three flavors today:
+      //   1. subscription — direct provider call from main using the
+      //      user's OAuth token (currently Anthropic only).
+      //   2. local Ollama — direct to localhost:11434 (bypasses public
+      //      backend which can't reach the user's machine).
+      //   3. backend — the default path, hits the configured UniRo backend.
+      // Hoisted out of try/catch so the catch block can tailor its hint.
+      const subscriptionProvider = detectSubscriptionProvider(
+        selectedModel,
+        connections.oauth
+      );
+      const isLocal = !subscriptionProvider && isLocalId(selectedModel);
       const dispatchModel = isLocal
         ? fromLocalId(selectedModel)
         : selectedModel;
       const dispatchUrl = isLocal
         ? `${OLLAMA_BASE_URL}/v1/chat/completions`
         : `${backendUrl}/v1/chat/completions`;
+
+      // Shared streaming state — populated by either dispatch path so the
+      // post-stream finalisation block below stays single-source-of-truth.
+      let accumulatedContent = "";
+      let modelName = "";
+
+      // Coalesce per-chunk renders to one per animation frame. SSE chunks
+      // can arrive 50–100×/sec; React can't usefully render that fast and
+      // the markdown re-parse on every chunk is expensive.
+      let pendingFlush = 0;
+      const flush = () => {
+        pendingFlush = 0;
+        updateMessages([
+          ...currentMessages,
+          {
+            role: "assistant",
+            content: accumulatedContent,
+            model: modelName,
+          },
+        ]);
+      };
+      const scheduleFlush = () => {
+        if (pendingFlush !== 0) return;
+        pendingFlush = requestAnimationFrame(flush);
+      };
+      const cancelFlush = () => {
+        if (pendingFlush !== 0) {
+          cancelAnimationFrame(pendingFlush);
+          pendingFlush = 0;
+        }
+      };
 
       try {
         let userContent: string | Array<Record<string, unknown>> = content;
@@ -132,123 +196,131 @@ export default function ChatWindow({
         }));
         apiMessages.push({ role: "user", content: userContent as string });
 
-        const body: Record<string, unknown> = {
-          model: dispatchModel,
-          messages: apiMessages,
-          stream: true,
-        };
-
-        // `thinking` is a UniRo backend extension; Ollama would 400 on it.
-        if (thinkingMode && !isLocal) {
-          body.thinking = true;
-        }
-
-        const response = await fetch(dispatchUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-          signal: controller.signal,
-        });
-
+        // Drop the staged image now that we've encoded it. Both dispatch
+        // paths take a snapshot of `apiMessages` above, so this is safe.
         onImageRemove();
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(
-            (errorData as { detail?: string }).detail || `HTTP ${response.status}`
-          );
-        }
-
-        const reader = response.body!.getReader();
-        const decoder = new TextDecoder();
-        let accumulatedContent = "";
-        let modelName = "";
-        let buffer = "";
-
-        // Coalesce per-chunk renders to one per animation frame. SSE chunks
-        // can arrive 50–100×/sec; React can't usefully render that fast and
-        // the markdown re-parse on every chunk is expensive. We capture the
-        // latest content in a ref-like closure and flush on rAF.
-        let pendingFlush = 0;
-        const flush = () => {
-          pendingFlush = 0;
-          updateMessages([
-            ...currentMessages,
-            {
-              role: "assistant",
-              content: accumulatedContent,
-              model: modelName,
-            },
-          ]);
-        };
-        const scheduleFlush = () => {
-          if (pendingFlush !== 0) return;
-          pendingFlush = requestAnimationFrame(flush);
-        };
-        const cancelFlush = () => {
-          if (pendingFlush !== 0) {
-            cancelAnimationFrame(pendingFlush);
-            pendingFlush = 0;
+        if (subscriptionProvider) {
+          // ---- subscription dispatch (main-process via IPC) ----
+          await new Promise<void>((resolve, reject) => {
+            const handle = window.uniro!.chat.streamSubscription(
+              {
+                provider: subscriptionProvider,
+                model: dispatchModel,
+                messages: apiMessages.map((m) => ({
+                  role: m.role,
+                  content: m.content,
+                })),
+                thinking: thinkingMode,
+              },
+              {
+                onChunk: (chunk) => {
+                  if (chunk.model && !modelName) modelName = chunk.model;
+                  if (chunk.content) accumulatedContent += chunk.content;
+                  scheduleFlush();
+                },
+                onDone: ({ error }) => {
+                  cancelFlush();
+                  subAbortRef.current = null;
+                  if (!error || error === "aborted") {
+                    resolve();
+                  } else {
+                    reject(new Error(error));
+                  }
+                },
+              }
+            );
+            subAbortRef.current = handle;
+            // Bridge the fetch-style controller to the subscription handle
+            // so the existing handleStop wiring keeps working.
+            controller.signal.addEventListener("abort", () => handle.abort());
+          });
+        } else {
+          // ---- HTTP dispatch (Ollama or UniRo backend) ----
+          const body: Record<string, unknown> = {
+            model: dispatchModel,
+            messages: apiMessages,
+            stream: true,
+          };
+          // `thinking` is a UniRo backend extension; Ollama would 400 on it.
+          if (thinkingMode && !isLocal) {
+            body.thinking = true;
           }
-        };
 
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+          const response = await fetch(dispatchUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+            signal: controller.signal,
+          });
 
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-            buffer = lines.pop() ?? "";
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(
+              (errorData as { detail?: string }).detail ||
+                `HTTP ${response.status}`
+            );
+          }
 
-            for (const line of lines) {
-              if (!line.startsWith("data: ")) continue;
-              const data = line.slice(6).trim();
-              if (data === "[DONE]") continue;
+          const reader = response.body!.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
 
-              try {
-                const parsed = JSON.parse(data);
-                if (parsed.error) {
-                  accumulatedContent += `\n\n**Error:** ${parsed.error.message}`;
-                  break;
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split("\n");
+              buffer = lines.pop() ?? "";
+
+              for (const line of lines) {
+                if (!line.startsWith("data: ")) continue;
+                const data = line.slice(6).trim();
+                if (data === "[DONE]") continue;
+
+                try {
+                  const parsed = JSON.parse(data);
+                  if (parsed.error) {
+                    accumulatedContent += `\n\n**Error:** ${parsed.error.message}`;
+                    break;
+                  }
+
+                  const delta = parsed.choices?.[0]?.delta;
+                  if (delta?.content) {
+                    accumulatedContent += delta.content;
+                  }
+                  if (parsed.model && !modelName) {
+                    modelName = parsed.model;
+                  }
+
+                  scheduleFlush();
+                } catch {
+                  // skip malformed chunks
                 }
+              }
+            }
+          } finally {
+            cancelFlush();
+          }
 
-                const delta = parsed.choices?.[0]?.delta;
-                if (delta?.content) {
-                  accumulatedContent += delta.content;
+          const trailingLine = buffer.trim();
+          if (trailingLine.startsWith("data: ")) {
+            const trailingData = trailingLine.slice(6).trim();
+            if (trailingData !== "[DONE]") {
+              try {
+                const parsed = JSON.parse(trailingData);
+                const trailingDelta = parsed.choices?.[0]?.delta;
+                if (trailingDelta?.content) {
+                  accumulatedContent += trailingDelta.content;
                 }
                 if (parsed.model && !modelName) {
                   modelName = parsed.model;
                 }
-
-                scheduleFlush();
               } catch {
-                // skip malformed chunks
+                // Ignore malformed final chunk
               }
-            }
-          }
-        } finally {
-          // Drop any pending rAF — the post-loop final updateMessages call
-          // below is authoritative and we don't want a stale flush running
-          // after it lands.
-          cancelFlush();
-        }
-
-        const trailingLine = buffer.trim();
-        if (trailingLine.startsWith("data: ")) {
-          const trailingData = trailingLine.slice(6).trim();
-          if (trailingData !== "[DONE]") {
-            try {
-              const parsed = JSON.parse(trailingData);
-              const trailingDelta = parsed.choices?.[0]?.delta;
-              if (trailingDelta?.content) {
-                accumulatedContent += trailingDelta.content;
-              }
-              if (parsed.model && !modelName) {
-                modelName = parsed.model;
-              }
-            } catch {
-              // Ignore malformed final chunk
             }
           }
         }
@@ -262,16 +334,17 @@ export default function ChatWindow({
           },
         ]);
       } catch (error) {
+        cancelFlush();
         if (error instanceof DOMException && error.name === "AbortError") {
           // Content already captured incrementally
         } else {
           const errMsg = error instanceof Error ? error.message : "Unknown error";
-          // Tailor the hint to where we actually dispatched. When the user
-          // picked a local model, the fetch went to Ollama on :11434, not
-          // to the public backend on :8857.
-          const hint = isLocal
-            ? `Make sure Ollama is running on ${OLLAMA_BASE_URL} (try \`ollama serve\`, or open the Ollama menu-bar app on macOS).`
-            : t("chat.errorBackend");
+          // Tailor the hint to where we actually dispatched.
+          const hint = subscriptionProvider
+            ? `Couldn't reach ${subscriptionProvider} with your subscription. If you've recently logged out, sign in again under Settings → Connections.`
+            : isLocal
+              ? `Make sure Ollama is running on ${OLLAMA_BASE_URL} (try \`ollama serve\`, or open the Ollama menu-bar app on macOS).`
+              : t("chat.errorBackend");
           updateMessages([
             ...currentMessages,
             {
@@ -283,6 +356,7 @@ export default function ChatWindow({
         }
       } finally {
         abortRef.current = null;
+        subAbortRef.current = null;
         setIsStreaming(false);
       }
     },
@@ -295,6 +369,7 @@ export default function ChatWindow({
       imageFile,
       onImageRemove,
       backendUrl,
+      connections.oauth,
     ]
   );
 

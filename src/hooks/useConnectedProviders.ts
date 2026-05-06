@@ -8,6 +8,10 @@ export interface ConnectionState {
   /** Set of connected credential keys (provider names lowercased), or
    *  `null` when not in the desktop app (web can't see local creds). */
   keys: ReadonlySet<string> | null;
+  /** Subset of `keys` whose credential entry has source==="oauth" — i.e.
+   *  providers connected via subscription login, eligible for direct
+   *  subscription dispatch from the main process. Null on web. */
+  oauth: ReadonlySet<string> | null;
   /** True if at least one stored credential is an API key (source ===
    *  "manual"). Null when not in the desktop app. */
   hasApiKey: boolean | null;
@@ -28,8 +32,8 @@ export function useConnectedProviders(): ConnectionState {
 
   const [state, setState] = useState<ConnectionState>(() =>
     isDesktop
-      ? { keys: new Set<string>(), hasApiKey: false }
-      : { keys: null, hasApiKey: null }
+      ? { keys: new Set<string>(), oauth: new Set<string>(), hasApiKey: false }
+      : { keys: null, oauth: null, hasApiKey: null }
   );
 
   useEffect(() => {
@@ -41,12 +45,15 @@ export function useConnectedProviders(): ConnectionState {
         const res = await window.uniro!.auth.status();
         if (cancelled) return;
         const keys = new Set<string>();
+        const oauth = new Set<string>();
         let hasApiKey = false;
         for (const e of res.entries) {
-          keys.add(e.provider.toLowerCase());
+          const p = e.provider.toLowerCase();
+          keys.add(p);
           if (e.source === "manual") hasApiKey = true;
+          if (e.source === "oauth") oauth.add(p);
         }
-        setState({ keys, hasApiKey });
+        setState({ keys, oauth, hasApiKey });
       } catch {
         /* keep last good state */
       }

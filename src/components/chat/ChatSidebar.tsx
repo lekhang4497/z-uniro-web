@@ -20,7 +20,7 @@ import { useTranslations } from "next-intl";
 import { UniroMark } from "@/components/UniroMark";
 import { cn } from "@/lib/utils";
 import { signOut, useSupabaseUser } from "@/hooks/useSupabaseUser";
-import { isAdminEmail } from "@/lib/admin";
+import { useIsAdmin } from "@/hooks/useUserProfile";
 
 function userInitial(label: string | null | undefined): string {
   if (!label) return "U";
@@ -211,6 +211,7 @@ function SidebarFooter({
   onOpenSettings?: () => void;
 }) {
   const { user, configured, loading } = useSupabaseUser();
+  const { isAdmin } = useIsAdmin();
   const [menuOpen, setMenuOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -324,7 +325,7 @@ function SidebarFooter({
             <SettingsIcon className="w-4 h-4 text-text-300" />
             <span className="text-[13.5px] text-text-000">Settings</span>
           </button>
-          {isAdminEmail(user?.email) && (
+          {isAdmin && (
             <Link
               href="/admin"
               onClick={() => setMenuOpen(false)}

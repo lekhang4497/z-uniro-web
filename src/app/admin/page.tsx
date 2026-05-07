@@ -14,6 +14,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useSupabaseUser } from "@/hooks/useSupabaseUser";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { useModels } from "@/hooks/useModels";
 import {
   formatProviderName,
@@ -21,19 +22,17 @@ import {
   modelDisplayName,
 } from "@/lib/provider-display";
 import { ProviderLogo } from "@/components/chat/ProviderLogo";
-import { adminAllowlistConfigured, isAdminEmail } from "@/lib/admin";
 import { UniroMark } from "@/components/UniroMark";
 import { cn } from "@/lib/utils";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useSupabaseUser();
-  const allowlisted = isAdminEmail(user?.email);
-  const allowlistConfigured = adminAllowlistConfigured();
+  const { profile, loading: profileLoading, error: profileError } =
+    useUserProfile();
 
   // Bounce signed-out users to /login?next=/admin so they land back
-  // here after sign-in. Anyone else who fails the allowlist sees the
-  // 403-style screen below.
+  // here after sign-in. Wrong-role users see the 403-style screen below.
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -41,34 +40,38 @@ export default function AdminDashboardPage() {
     }
   }, [authLoading, user, router]);
 
-  if (authLoading || (!user && !authLoading)) {
+  if (authLoading || profileLoading || !user) {
     return <CenteredLoader label="Checking access…" />;
   }
 
-  if (!allowlistConfigured) {
+  if (profileError) {
     return (
       <Gate
-        title="Admin allowlist not configured"
+        title="Couldn't verify access"
         body={
           <>
-            Set <code className="font-mono text-[12px]">NEXT_PUBLIC_ADMIN_EMAILS</code>{" "}
-            (comma-separated) in this build&apos;s environment to grant
-            access. Until then nobody can use the admin dashboard.
+            We couldn&apos;t reach Supabase to check your role:{" "}
+            <span className="font-mono">{profileError}</span>. Try
+            refreshing — if this keeps happening, the database may be
+            down or the schema migration hasn&apos;t been applied to
+            this project.
           </>
         }
       />
     );
   }
 
-  if (!allowlisted) {
+  if (!profile?.is_admin) {
     return (
       <Gate
         title="You don't have admin access"
         body={
           <>
-            Signed in as <span className="font-mono">{user!.email}</span>.
-            Ask whoever runs this UniRo deployment to add you to the admin
-            allowlist.
+            Signed in as <span className="font-mono">{user.email}</span>.
+            Ask an existing admin to flip your{" "}
+            <code className="font-mono text-[12px]">is_admin</code> in
+            the <code className="font-mono text-[12px]">profiles</code>{" "}
+            table.
           </>
         }
       />

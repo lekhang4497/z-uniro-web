@@ -1,21 +1,24 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ChevronDown,
   Folder,
   LayoutGrid,
+  Loader2,
   LogIn,
+  LogOut,
   Plus,
   Search,
+  Settings as SettingsIcon,
   SlidersHorizontal,
 } from "lucide-react";
 import type { Conversation } from "@/types";
 import { useTranslations } from "next-intl";
 import { UniroMark } from "@/components/UniroMark";
 import { cn } from "@/lib/utils";
-import { useSupabaseUser } from "@/hooks/useSupabaseUser";
+import { signOut, useSupabaseUser } from "@/hooks/useSupabaseUser";
 
 function userInitial(label: string | null | undefined): string {
   if (!label) return "U";
@@ -206,10 +209,40 @@ function SidebarFooter({
   onOpenSettings?: () => void;
 }) {
   const { user, configured, loading } = useSupabaseUser();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const label = user?.email || user?.user_metadata?.name || null;
   // While we don't yet know auth state, render the same shell so the
   // sidebar doesn't pop layout when the answer arrives.
   const skeleton = loading && configured;
+
+  // Close on outside click — same pattern as the model picker.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [menuOpen]);
+
+  // Close the menu if the user disappears (e.g. signOut completed and
+  // auth-state-change cleared the user).
+  useEffect(() => {
+    if (!user) setMenuOpen(false);
+  }, [user]);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOut();
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   if (!user && configured && !loading) {
     return (
@@ -234,15 +267,24 @@ function SidebarFooter({
     );
   }
 
+  // When not signed in (and Supabase configured) we already returned the
+  // "Sign in" tile above. Anything past here is the signed-in OR
+  // unconfigured-Supabase fallback (which keeps today's "open settings"
+  // behavior since there's nothing to sign out of).
+  const showSignOut = !!user;
+
   return (
-    <div className="border-t border-border-200 px-2.5 py-2.5">
+    <div className="border-t border-border-200 px-2.5 py-2.5 relative" ref={menuRef}>
       <button
         type="button"
-        onClick={onOpenSettings}
-        title="Open settings"
+        onClick={() => {
+          if (showSignOut) setMenuOpen((o) => !o);
+          else onOpenSettings?.();
+        }}
+        title={showSignOut ? "Account menu" : "Open settings"}
         className={cn(
           "flex w-full items-center gap-2.5 rounded-[10px] px-1.5 py-1.5 text-left transition-colors hover:bg-bg-200",
-          settingsActive && "bg-bg-200"
+          (settingsActive || menuOpen) && "bg-bg-200"
         )}
       >
         <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-accent-000 text-accent-fg text-[12px] font-semibold flex-shrink-0">
@@ -256,8 +298,48 @@ function SidebarFooter({
             {user ? "Signed in" : "Studio · Pro"}
           </div>
         </div>
-        <ChevronDown className="w-3.5 h-3.5 text-text-400 flex-shrink-0" />
+        <ChevronDown
+          className={cn(
+            "w-3.5 h-3.5 text-text-400 flex-shrink-0 transition-transform",
+            menuOpen && "rotate-180"
+          )}
+        />
       </button>
+
+      {menuOpen && showSignOut && (
+        <div
+          role="menu"
+          className="absolute left-2.5 right-2.5 bottom-[calc(100%-2px)] z-30 mb-1 rounded-xl border border-border-300 bg-bg-000 p-1.5 shadow-[0_24px_48px_-16px_rgba(0,0,0,.18),0_2px_8px_rgba(0,0,0,.06)]"
+        >
+          <button
+            type="button"
+            onClick={() => {
+              setMenuOpen(false);
+              onOpenSettings?.();
+            }}
+            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-bg-100"
+          >
+            <SettingsIcon className="w-4 h-4 text-text-300" />
+            <span className="text-[13.5px] text-text-000">Settings</span>
+          </button>
+          <div className="h-px bg-border-200 my-1 mx-1" />
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-bg-100 disabled:opacity-60"
+          >
+            {signingOut ? (
+              <Loader2 className="w-4 h-4 animate-spin text-text-300" />
+            ) : (
+              <LogOut className="w-4 h-4 text-text-300" />
+            )}
+            <span className="text-[13.5px] text-text-000">
+              {signingOut ? "Signing out…" : "Sign out"}
+            </span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Menu } from "lucide-react";
+import { ChevronDown, ExternalLink, Loader2, LogOut, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { UniroMark } from "@/components/UniroMark";
-import { useSupabaseUser } from "@/hooks/useSupabaseUser";
+import { signOut, useSupabaseUser } from "@/hooks/useSupabaseUser";
 
 function userInitial(emailOrName: string | null | undefined): string {
   if (!emailOrName) return "?";
@@ -19,10 +19,41 @@ function userInitial(emailOrName: string | null | undefined): string {
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const t = useTranslations();
   const { user, configured } = useSupabaseUser();
   const userLabel = user?.email || user?.user_metadata?.name || null;
+
+  // Close the account popover on outside click and when the user
+  // disappears (e.g. signOut completes).
+  useEffect(() => {
+    if (!accountOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (
+        accountRef.current &&
+        !accountRef.current.contains(e.target as Node)
+      ) {
+        setAccountOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [accountOpen]);
+  useEffect(() => {
+    if (!user) setAccountOpen(false);
+  }, [user]);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOut();
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   const links = [
     { label: "Features", href: "/#features" },
@@ -76,21 +107,63 @@ export default function Nav() {
 
         <div className="hidden md:flex items-center gap-[18px] text-[14px]">
           {user ? (
-            <Link
-              href="/chat"
-              className="inline-flex items-center gap-2 text-text-200 hover:text-text-000 transition-colors"
-              title={userLabel ?? "Open app"}
-            >
-              <span
-                className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-accent-000 text-accent-fg text-[11px] font-semibold"
-                aria-hidden="true"
+            <div className="relative" ref={accountRef}>
+              <button
+                type="button"
+                onClick={() => setAccountOpen((o) => !o)}
+                title={userLabel ?? "Account"}
+                className="inline-flex items-center gap-2 text-text-200 hover:text-text-000 transition-colors"
               >
-                {userInitial(userLabel)}
-              </span>
-              <span className="max-w-[140px] truncate">
-                {userLabel ?? "Account"}
-              </span>
-            </Link>
+                <span
+                  className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-accent-000 text-accent-fg text-[11px] font-semibold"
+                  aria-hidden="true"
+                >
+                  {userInitial(userLabel)}
+                </span>
+                <span className="max-w-[140px] truncate">
+                  {userLabel ?? "Account"}
+                </span>
+                <ChevronDown
+                  className={
+                    "w-3.5 h-3.5 text-text-400 transition-transform " +
+                    (accountOpen ? "rotate-180" : "")
+                  }
+                />
+              </button>
+              {accountOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-[calc(100%+8px)] z-30 w-[220px] p-1.5 rounded-xl border border-border-300 bg-bg-000 shadow-[0_24px_48px_-16px_rgba(0,0,0,.18),0_2px_8px_rgba(0,0,0,.06)]"
+                >
+                  <Link
+                    href="/chat"
+                    onClick={() => setAccountOpen(false)}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 hover:bg-bg-100"
+                  >
+                    <ExternalLink className="w-4 h-4 text-text-300" />
+                    <span className="text-[13.5px] text-text-000">
+                      Open app
+                    </span>
+                  </Link>
+                  <div className="h-px bg-border-200 my-1 mx-1" />
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    disabled={signingOut}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-bg-100 disabled:opacity-60"
+                  >
+                    {signingOut ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-text-300" />
+                    ) : (
+                      <LogOut className="w-4 h-4 text-text-300" />
+                    )}
+                    <span className="text-[13.5px] text-text-000">
+                      {signingOut ? "Signing out…" : "Sign out"}
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
           ) : configured ? (
             <Link
               href="/login"

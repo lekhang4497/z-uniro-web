@@ -6,9 +6,17 @@ import { Loader2 } from "lucide-react";
 import { UniroMark } from "@/components/UniroMark";
 import { getSupabase } from "@/lib/supabase";
 
-// Static export → no server route handler. The PKCE code arrives as a
-// `?code=...` query param on this page; the browser bundle exchanges it
-// for a session, then forwards the user wherever they were headed.
+// Static export → no server route handler. Two ways the user can land
+// here:
+//
+//   1. PKCE OAuth (Google) — Supabase redirects with `?code=...`. We
+//      exchange it for a session here.
+//
+//   2. Email confirmation / magic link — Supabase's default email
+//      template puts an access token in the URL *hash* (#access_token=…).
+//      The supabase-js client picks that up automatically when it boots
+//      because we set `detectSessionInUrl: true`, so we just wait for
+//      onAuthStateChange to fire and forward.
 
 function CallbackInner() {
   const router = useRouter();
@@ -23,31 +31,69 @@ function CallbackInner() {
     }
 
     const code = searchParams.get("code");
-    const oauthError = searchParams.get("error_description") || searchParams.get("error");
+    const oauthError =
+      searchParams.get("error_description") || searchParams.get("error");
     const next = searchParams.get("next") || "/chat";
 
     if (oauthError) {
       setError(oauthError);
       return;
     }
-    if (!code) {
-      setError("No authorization code on the callback URL.");
-      return;
-    }
 
     let cancelled = false;
-    supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-      if (cancelled) return;
-      if (error) {
-        setError(error.message);
-        return;
-      }
-      // Strip query params from history before forwarding so the code
-      // doesn't sit around in the back-button stack.
-      router.replace(next);
-    });
+
+    // Path 2 (hash-fragment) — wait for supabase-js to surface the
+    // session via onAuthStateChange. If a session is already present
+    // (e.g. user reloaded the callback page) forward immediately.
+    const subscribeAndForward = () => {
+      supabase.auth.getSession().then(({ data }) => {
+        if (cancelled) return;
+        if (data.session) {
+          router.replace(next);
+        }
+      });
+
+      const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (cancelled || !session) return;
+        router.replace(next);
+      });
+
+      // Safety net: if no session materialises within ~6s, the link is
+      // probably stale or the URL is malformed. Give the user something
+      // actionable rather than a permanent spinner.
+      const timeout = window.setTimeout(() => {
+        if (cancelled) return;
+        sub.subscription.unsubscribe();
+        setError(
+          "We couldn't finish signing you in. The link may have expired — try again."
+        );
+      }, 6000);
+
+      return () => {
+        sub.subscription.unsubscribe();
+        window.clearTimeout(timeout);
+      };
+    };
+
+    if (code) {
+      // Path 1 (PKCE) — explicit code exchange.
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (cancelled) return;
+        if (error) {
+          setError(error.message);
+          return;
+        }
+        router.replace(next);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const cleanup = subscribeAndForward();
     return () => {
       cancelled = true;
+      cleanup?.();
     };
   }, [router, searchParams]);
 

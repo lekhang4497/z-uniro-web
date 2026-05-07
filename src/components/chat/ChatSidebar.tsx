@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo } from "react";
+import Link from "next/link";
 import {
   ChevronDown,
   Folder,
   LayoutGrid,
+  LogIn,
   Plus,
   Search,
   SlidersHorizontal,
@@ -13,6 +15,13 @@ import type { Conversation } from "@/types";
 import { useTranslations } from "next-intl";
 import { UniroMark } from "@/components/UniroMark";
 import { cn } from "@/lib/utils";
+import { useSupabaseUser } from "@/hooks/useSupabaseUser";
+
+function userInitial(label: string | null | undefined): string {
+  if (!label) return "U";
+  const trimmed = label.trim();
+  return trimmed ? trimmed[0].toUpperCase() : "U";
+}
 
 interface ChatSidebarProps {
   conversations: Conversation[];
@@ -180,27 +189,75 @@ export default function ChatSidebar({
         )}
       </div>
 
-      {/* Footer: user card → settings */}
-      <div className="border-t border-border-200 px-2.5 py-2.5">
-        <button
-          type="button"
-          onClick={onOpenSettings}
-          title="Open settings"
-          className={cn(
-            "flex w-full items-center gap-2.5 rounded-[10px] px-1.5 py-1.5 text-left transition-colors hover:bg-bg-200",
-            settingsActive && "bg-bg-200"
-          )}
-        >
-          <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-accent-000 text-accent-fg text-[12px] font-semibold flex-shrink-0">
-            U
-          </div>
-          <div className="flex-1 min-w-0 leading-tight text-left">
-            <div className="text-[13px] font-medium text-text-000 truncate">UniRo</div>
-            <div className="text-[11px] text-text-400 truncate">Studio · Pro</div>
-          </div>
-          <ChevronDown className="w-3.5 h-3.5 text-text-400 flex-shrink-0" />
-        </button>
-      </div>
+      {/* Footer: user card → settings (signed in) or Sign in CTA → /login */}
+      <SidebarFooter
+        settingsActive={settingsActive}
+        onOpenSettings={onOpenSettings}
+      />
     </aside>
+  );
+}
+
+function SidebarFooter({
+  settingsActive,
+  onOpenSettings,
+}: {
+  settingsActive?: boolean;
+  onOpenSettings?: () => void;
+}) {
+  const { user, configured, loading } = useSupabaseUser();
+  const label = user?.email || user?.user_metadata?.name || null;
+  // While we don't yet know auth state, render the same shell so the
+  // sidebar doesn't pop layout when the answer arrives.
+  const skeleton = loading && configured;
+
+  if (!user && configured && !loading) {
+    return (
+      <div className="border-t border-border-200 px-2.5 py-2.5">
+        <Link
+          href="/login"
+          className="flex w-full items-center gap-2.5 rounded-[10px] px-1.5 py-1.5 text-left transition-colors hover:bg-bg-200"
+        >
+          <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-bg-200 text-text-300 flex-shrink-0">
+            <LogIn className="w-3.5 h-3.5" />
+          </div>
+          <div className="flex-1 min-w-0 leading-tight">
+            <div className="text-[13px] font-medium text-text-000 truncate">
+              Sign in
+            </div>
+            <div className="text-[11px] text-text-400 truncate">
+              Sync chats across devices
+            </div>
+          </div>
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-t border-border-200 px-2.5 py-2.5">
+      <button
+        type="button"
+        onClick={onOpenSettings}
+        title="Open settings"
+        className={cn(
+          "flex w-full items-center gap-2.5 rounded-[10px] px-1.5 py-1.5 text-left transition-colors hover:bg-bg-200",
+          settingsActive && "bg-bg-200"
+        )}
+      >
+        <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-accent-000 text-accent-fg text-[12px] font-semibold flex-shrink-0">
+          {skeleton ? "" : userInitial(label ?? "U")}
+        </div>
+        <div className="flex-1 min-w-0 leading-tight text-left">
+          <div className="text-[13px] font-medium text-text-000 truncate">
+            {label ?? "UniRo"}
+          </div>
+          <div className="text-[11px] text-text-400 truncate">
+            {user ? "Signed in" : "Studio · Pro"}
+          </div>
+        </div>
+        <ChevronDown className="w-3.5 h-3.5 text-text-400 flex-shrink-0" />
+      </button>
+    </div>
   );
 }

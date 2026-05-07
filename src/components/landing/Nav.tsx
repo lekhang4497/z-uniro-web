@@ -8,12 +8,21 @@ import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { UniroMark } from "@/components/UniroMark";
+import { useSupabaseUser } from "@/hooks/useSupabaseUser";
+
+function userInitial(emailOrName: string | null | undefined): string {
+  if (!emailOrName) return "?";
+  const trimmed = emailOrName.trim();
+  return trimmed ? trimmed[0].toUpperCase() : "?";
+}
 
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const t = useTranslations();
+  const { user, configured } = useSupabaseUser();
+  const userLabel = user?.email || user?.user_metadata?.name || null;
 
   const links = [
     { label: "Features", href: "/#features" },
@@ -66,9 +75,30 @@ export default function Nav() {
         <div className="flex-1" />
 
         <div className="hidden md:flex items-center gap-[18px] text-[14px]">
-          <Link href="/chat" className="text-text-400 hover:text-text-000 transition-colors">
-            Sign in
-          </Link>
+          {user ? (
+            <Link
+              href="/chat"
+              className="inline-flex items-center gap-2 text-text-200 hover:text-text-000 transition-colors"
+              title={userLabel ?? "Open app"}
+            >
+              <span
+                className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-accent-000 text-accent-fg text-[11px] font-semibold"
+                aria-hidden="true"
+              >
+                {userInitial(userLabel)}
+              </span>
+              <span className="max-w-[140px] truncate">
+                {userLabel ?? "Account"}
+              </span>
+            </Link>
+          ) : configured ? (
+            <Link
+              href="/login"
+              className="text-text-400 hover:text-text-000 transition-colors"
+            >
+              Sign in
+            </Link>
+          ) : null}
           <Link
             href="/chat"
             className="inline-flex items-center rounded-lg bg-accent-000 hover:bg-accent-100 text-accent-fg px-4 py-2 text-[13.5px] font-medium transition-colors"

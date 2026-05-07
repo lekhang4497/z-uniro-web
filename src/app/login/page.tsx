@@ -310,8 +310,25 @@ function humanizeAuthError(msg: string): string {
   if (m.includes("user already registered")) {
     return "An account with that email already exists. Try signing in.";
   }
-  if (m.includes("password should be")) {
+  if (m.includes("password should be") || m.includes("weak password")) {
     return "Password must be at least 8 characters.";
+  }
+  if (
+    m.includes("email address") &&
+    (m.includes("invalid") || m.includes("not allowed"))
+  ) {
+    // Supabase blocks a handful of "test" addresses (test@gmail.com etc.)
+    // server-side. Make this obvious instead of looking like a typo.
+    return "That email address isn't accepted. Try a real address — Supabase blocks common test addresses like test@gmail.com.";
+  }
+  if (m.includes("rate limit") || m.includes("over_email_send_rate_limit")) {
+    return "Too many emails sent in a short window. Wait an hour and try again, or disable email confirmation in your Supabase project for testing.";
+  }
+  if (m.includes("signup") && m.includes("disabled")) {
+    return "Sign-up is disabled for this project. Ask the project owner to enable it in Supabase.";
+  }
+  if (m.includes("email provider") && m.includes("disabled")) {
+    return "Email sign-in isn't enabled on this project. Enable it in Supabase under Auth → Providers → Email.";
   }
   return msg;
 }

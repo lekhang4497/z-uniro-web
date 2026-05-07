@@ -12,6 +12,7 @@ import {
   Plus,
   Search,
   Settings as SettingsIcon,
+  Shield,
   SlidersHorizontal,
 } from "lucide-react";
 import type { Conversation } from "@/types";
@@ -19,6 +20,7 @@ import { useTranslations } from "next-intl";
 import { UniroMark } from "@/components/UniroMark";
 import { cn } from "@/lib/utils";
 import { signOut, useSupabaseUser } from "@/hooks/useSupabaseUser";
+import { isAdminEmail } from "@/lib/admin";
 
 function userInitial(label: string | null | undefined): string {
   if (!label) return "U";
@@ -322,6 +324,16 @@ function SidebarFooter({
             <SettingsIcon className="w-4 h-4 text-text-300" />
             <span className="text-[13.5px] text-text-000">Settings</span>
           </button>
+          {isAdminEmail(user?.email) && (
+            <Link
+              href="/admin"
+              onClick={() => setMenuOpen(false)}
+              className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left hover:bg-bg-100"
+            >
+              <Shield className="w-4 h-4 text-text-300" />
+              <span className="text-[13.5px] text-text-000">Admin</span>
+            </Link>
+          )}
           <div className="h-px bg-border-200 my-1 mx-1" />
           <button
             type="button"

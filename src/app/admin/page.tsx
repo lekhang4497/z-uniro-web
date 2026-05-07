@@ -150,12 +150,32 @@ function Dashboard() {
     return { total, available };
   }, [concrete]);
 
+  // Unified latency lookup: user-measured probe (most recent) wins;
+  // otherwise fall back to whatever the backend's /v1/models reported.
+  // Returns undefined only when neither source has a value.
+  const effectiveLatencies = useMemo(() => {
+    const merged: LatencyMap = { ...latencies };
+    for (const m of concrete) {
+      if (merged[m.id]) continue;
+      if (m.latency_ms != null) {
+        merged[m.id] = {
+          ms: m.latency_ms,
+          error: null,
+          measuredAt: m.last_health_check
+            ? Date.parse(m.last_health_check) || 0
+            : 0,
+        };
+      }
+    }
+    return merged;
+  }, [concrete, latencies]);
+
   const filtered = useMemo(() => {
     if (!bucketFilter) return concrete;
     return concrete.filter((m) =>
-      bucketFilter.has(bucketFor(latencies[m.id]))
+      bucketFilter.has(bucketFor(effectiveLatencies[m.id]))
     );
-  }, [concrete, latencies, bucketFilter]);
+  }, [concrete, effectiveLatencies, bucketFilter]);
 
   const handleMeasureAll = () => {
     measure(concrete.map((m) => m.id));
@@ -276,7 +296,7 @@ function Dashboard() {
               onSortChange={setSortBy}
               bucketFilter={bucketFilter}
               onBucketFilterChange={setBucketFilter}
-              latencies={latencies}
+              latencies={effectiveLatencies}
               concrete={concrete}
               filteredCount={filtered.length}
               lastMeasuredAt={lastMeasuredAt}
@@ -302,14 +322,14 @@ function Dashboard() {
                     }))
                     .filter((g) => g.models.length > 0)}
                   view={view}
-                  latencies={latencies}
+                  latencies={effectiveLatencies}
                   inFlight={inFlight}
                 />
               ) : (
                 <FlatList
-                  models={sortFlat(filtered, sortBy, latencies)}
+                  models={sortFlat(filtered, sortBy, effectiveLatencies)}
                   view={view}
-                  latencies={latencies}
+                  latencies={effectiveLatencies}
                   inFlight={inFlight}
                 />
               )}

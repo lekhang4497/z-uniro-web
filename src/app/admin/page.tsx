@@ -23,6 +23,7 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { useModels } from "@/hooks/useModels";
 import {
   bucketFor,
+  isProbeFresh,
   LATENCY_BUCKETS,
   type LatencyBucketId,
   type LatencyMap,
@@ -122,6 +123,7 @@ function Dashboard() {
     measuring,
     measure,
     abort,
+    clear,
     lastMeasuredAt,
   } = useModelLatency();
 
@@ -150,11 +152,20 @@ function Dashboard() {
     return { total, available };
   }, [concrete]);
 
-  // Unified latency lookup: user-measured probe (most recent) wins;
-  // otherwise fall back to whatever the backend's /v1/models reported.
-  // Returns undefined only when neither source has a value.
+  // Unified latency lookup. User probes win when fresh (within
+  // LATENCY_TTL_MS); stale probes are dropped so the backend value
+  // doesn't get permanently shadowed by a one-off old probe. Backend
+  // values are tagged source="backend" so the badge tooltip can be
+  // honest about where the number came from.
+  const hasFreshProbe = (id: string): boolean => {
+    const r = latencies[id];
+    return !!r && isProbeFresh(r);
+  };
   const effectiveLatencies = useMemo(() => {
-    const merged: LatencyMap = { ...latencies };
+    const merged: LatencyMap = {};
+    for (const [id, r] of Object.entries(latencies)) {
+      if (isProbeFresh(r)) merged[id] = r;
+    }
     for (const m of concrete) {
       if (merged[m.id]) continue;
       if (m.latency_ms != null) {
@@ -164,11 +175,21 @@ function Dashboard() {
           measuredAt: m.last_health_check
             ? Date.parse(m.last_health_check) || 0
             : 0,
+          source: "backend",
         };
       }
     }
     return merged;
   }, [concrete, latencies]);
+
+  // Anything in the user-probe cache that survived TTL filtering above
+  // — used to decide whether to show the "Clear measurements" button.
+  const hasAnyProbe = useMemo(
+    () => Object.keys(latencies).some((id) => hasFreshProbe(id)),
+    // hasFreshProbe is derived from `latencies` so listing it suffices.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [latencies]
+  );
 
   const filtered = useMemo(() => {
     if (!bucketFilter) return concrete;
@@ -300,6 +321,8 @@ function Dashboard() {
               concrete={concrete}
               filteredCount={filtered.length}
               lastMeasuredAt={lastMeasuredAt}
+              hasAnyProbe={hasAnyProbe}
+              onClearProbes={clear}
             />
 
             {/* Models — grouped by provider when sortBy="provider", flat
@@ -373,6 +396,8 @@ function Toolbar({
   concrete,
   filteredCount,
   lastMeasuredAt,
+  hasAnyProbe,
+  onClearProbes,
 }: {
   view: ViewMode;
   onViewChange: (v: ViewMode) => void;
@@ -384,6 +409,8 @@ function Toolbar({
   concrete: BackendModel[];
   filteredCount: number;
   lastMeasuredAt: number | null;
+  hasAnyProbe: boolean;
+  onClearProbes: () => void;
 }) {
   // Per-bucket counts so the filter chips show "Slow (3)" rather than a
   // bare label — much easier to scan.
@@ -447,13 +474,25 @@ function Toolbar({
 
         <div className="flex-1" />
 
-        <div className="text-[11.5px] text-text-400 tabular-nums">
-          {filteredCount} of {concrete.length} model
-          {concrete.length === 1 ? "" : "s"}
-          {lastMeasuredAt && (
-            <span className="ml-3">
-              · last measured {formatAgo(lastMeasuredAt)}
-            </span>
+        <div className="flex items-center gap-3 text-[11.5px] text-text-400 tabular-nums">
+          <span>
+            {filteredCount} of {concrete.length} model
+            {concrete.length === 1 ? "" : "s"}
+            {lastMeasuredAt && (
+              <span className="ml-3">
+                · last measured {formatAgo(lastMeasuredAt)}
+              </span>
+            )}
+          </span>
+          {hasAnyProbe && (
+            <button
+              type="button"
+              onClick={onClearProbes}
+              title="Drop your locally-cached probe results so backend health-check values show through again."
+              className="text-text-300 hover:text-text-000 underline underline-offset-4"
+            >
+              Clear my measurements
+            </button>
           )}
         </div>
       </div>
@@ -876,9 +915,15 @@ function LatencyBadge({
   }
   const id = bucketFor(latency);
   const meta = labelForBucket(id);
+  const sourceLabel =
+    latency.source === "backend"
+      ? "backend health check"
+      : "your probe";
+  const ageSuffix =
+    latency.measuredAt > 0 ? ` · ${formatAgo(latency.measuredAt)}` : "";
   return (
     <span
-      title={`${meta.label} · time-to-first-token`}
+      title={`${meta.label} · time-to-first-token (${sourceLabel}${ageSuffix})`}
       className={cn(
         "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-[11px] tabular-nums w-[88px] justify-center",
         bucketBadgeClass(id)

@@ -18,14 +18,25 @@ export type LatencyBucketId =
   | "error"
   | "unmeasured";
 
+// Where a latency value came from. The hook itself only ever produces
+// "probe"; "backend" gets tagged on entries the dashboard merges in
+// from /v1/models so the badge tooltip can be honest about the source.
+export type LatencySource = "probe" | "backend";
+
 export interface LatencyResult {
   ms: number | null;
   // Set on probe failure — surfaced in tooltips / error rows.
   error: string | null;
   measuredAt: number;
+  source?: LatencySource;
 }
 
 export type LatencyMap = Record<string, LatencyResult>;
+
+/** True if a probe-cached value is still within its useful lifetime. */
+export function isProbeFresh(r: LatencyResult): boolean {
+  return Date.now() - r.measuredAt < LATENCY_TTL_MS;
+}
 
 const STORAGE_KEY = "uniro:latency-cache:v1";
 // Cache lifetime — past this we still display the stale numbers but
@@ -54,6 +65,10 @@ interface UseModelLatencyState {
   measuring: boolean;
   measure: (modelIds: string[]) => Promise<void>;
   abort: () => void;
+  // Wipe all cached probes (in-memory + localStorage). The dashboard
+  // exposes this so users can fall back to backend-reported values
+  // after a misleading stale probe.
+  clear: () => void;
   // null when no measurements have ever been recorded; otherwise the
   // most recent measuredAt across the cache.
   lastMeasuredAt: number | null;
@@ -133,6 +148,13 @@ export function useModelLatency(): UseModelLatencyState {
     abortRef.current?.abort();
   }, []);
 
+  const clear = useCallback(() => {
+    abortRef.current?.abort();
+    setLatencies({});
+    setInFlight(new Set());
+    setProgress(null);
+  }, []);
+
   const lastMeasuredAt = useMemoLastMeasured(latencies);
 
   return {
@@ -142,6 +164,7 @@ export function useModelLatency(): UseModelLatencyState {
     measuring: progress !== null,
     measure,
     abort,
+    clear,
     lastMeasuredAt,
   };
 }
@@ -207,6 +230,7 @@ async function probeOnce(
         ms: null,
         error: String(detail).slice(0, 200),
         measuredAt: Date.now(),
+        source: "probe",
       };
     }
 
@@ -215,6 +239,7 @@ async function probeOnce(
         ms: null,
         error: "Streaming not supported",
         measuredAt: Date.now(),
+        source: "probe",
       };
     }
 
@@ -237,24 +262,36 @@ async function probeOnce(
         const ttfb = performance.now() - start;
         // Best-effort cancel — we don't need the rest of the response.
         await reader.cancel().catch(() => {});
-        return { ms: Math.round(ttfb), error: null, measuredAt: Date.now() };
+        return {
+          ms: Math.round(ttfb),
+          error: null,
+          measuredAt: Date.now(),
+          source: "probe",
+        };
       }
     }
   } catch (err) {
     if (signal.aborted) {
-      return { ms: null, error: "aborted", measuredAt: Date.now() };
+      return {
+        ms: null,
+        error: "aborted",
+        measuredAt: Date.now(),
+        source: "probe",
+      };
     }
     if (timeout.signal.aborted) {
       return {
         ms: null,
         error: `Timeout after ${PROBE_TIMEOUT_MS / 1000}s`,
         measuredAt: Date.now(),
+        source: "probe",
       };
     }
     return {
       ms: null,
       error: err instanceof Error ? err.message : String(err),
       measuredAt: Date.now(),
+      source: "probe",
     };
   } finally {
     clearTimeout(t);

@@ -162,7 +162,7 @@ function MessageBubbleImpl({
                     )}
 
                     {!editing && !isStreaming && (
-                        <div className="flex items-center justify-end gap-0.5 mt-2 -mr-1.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-end gap-0.5 mt-2 -mr-1.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
                             <ActionBtn onClick={copy} title={copied ? "Copied" : "Copy"}>
                                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                             </ActionBtn>
@@ -202,7 +202,7 @@ function MessageBubbleImpl({
                 </>
 
                 {!isStreaming && (
-                    <div className="flex items-center gap-0.5 mt-2 -ml-1.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-0.5 mt-2 -ml-1.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
                         <ActionBtn onClick={copy} title={copied ? "Copied" : "Copy"}>
                             {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                         </ActionBtn>

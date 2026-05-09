@@ -356,8 +356,8 @@ export default function ChatInput({
                         ? "top-[calc(100%+10px)]"
                         : "bottom-[calc(100%+10px)]",
                       menuView === "providers" && providersViewMode === "card"
-                        ? "w-[400px]"
-                        : "w-[320px]"
+                        ? "w-[min(400px,calc(100vw-24px))]"
+                        : "w-[min(320px,calc(100vw-24px))]"
                     )}
                     style={{ maxHeight: "min(560px, calc(100vh - 140px))" }}
                     onClick={(e) => e.stopPropagation()}

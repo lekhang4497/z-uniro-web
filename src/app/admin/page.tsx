@@ -205,7 +205,7 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border-200 bg-bg-100/40 backdrop-blur">
-        <div className="mx-auto max-w-[1080px] px-6 py-4 flex items-center justify-between gap-4">
+        <div className="mx-auto max-w-[1080px] px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <Link
               href="/chat"
@@ -223,17 +223,18 @@ function Dashboard() {
               · Models
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {measuring ? (
               <button
                 type="button"
                 onClick={abort}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border-300 bg-bg-000 px-3 h-8 text-[12.5px] text-text-200 hover:text-text-000 hover:bg-bg-100 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border-300 bg-bg-000 px-2.5 sm:px-3 h-8 text-[12.5px] text-text-200 hover:text-text-000 hover:bg-bg-100 transition-colors"
                 title="Stop measuring"
               >
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>
-                  Measuring… {progress?.done ?? 0}/{progress?.total ?? 0}
+                <span className="hidden sm:inline">Measuring… </span>
+                <span className="tabular-nums">
+                  {progress?.done ?? 0}/{progress?.total ?? 0}
                 </span>
               </button>
             ) : (
@@ -241,27 +242,29 @@ function Dashboard() {
                 type="button"
                 onClick={handleMeasureAll}
                 disabled={concrete.length === 0}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-border-300 bg-bg-000 px-3 h-8 text-[12.5px] text-text-200 hover:text-text-000 hover:bg-bg-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border-300 bg-bg-000 px-2.5 sm:px-3 h-8 text-[12.5px] text-text-200 hover:text-text-000 hover:bg-bg-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 title="Send a 1-token probe to each model and record time-to-first-token"
               >
                 <Timer className="w-3.5 h-3.5" />
-                <span>Measure latencies</span>
+                <span className="hidden sm:inline">Measure latencies</span>
+                <span className="sm:hidden">Measure</span>
               </button>
             )}
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border-300 bg-bg-000 px-3 h-8 text-[12.5px] text-text-200 hover:text-text-000 hover:bg-bg-100 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border-300 bg-bg-000 px-2.5 sm:px-3 h-8 text-[12.5px] text-text-200 hover:text-text-000 hover:bg-bg-100 transition-colors"
               title="Refresh model list"
+              aria-label="Refresh"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span>Refresh</span>
+              <span className="hidden sm:inline">Refresh</span>
             </button>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1080px] px-6 py-8 flex flex-col gap-8">
+      <main className="mx-auto max-w-[1080px] px-4 sm:px-6 py-6 sm:py-8 flex flex-col gap-6 sm:gap-8">
         {error ? (
           <div className="rounded-[10px] border border-[#a63a2a]/40 bg-[#a63a2a]/5 px-4 py-3 text-[13px] text-[#a63a2a]">
             Couldn&apos;t reach <span className="font-mono">/v1/models</span>:{" "}
@@ -731,7 +734,7 @@ function ModelRow({
   const up = m.available !== false;
   const provider = extractProvider(m.id);
   return (
-    <li className="flex items-center gap-3 px-4 py-2.5 border-t border-border-200/60 first:border-t-0 hover:bg-bg-100/40">
+    <li className="flex items-center gap-2.5 sm:gap-3 px-3 sm:px-4 py-2.5 border-t border-border-200/60 first:border-t-0 hover:bg-bg-100/40">
       {up ? (
         <CheckCircle2 className="w-4 h-4 text-[#4aa86f] shrink-0" />
       ) : (

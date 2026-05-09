@@ -195,6 +195,22 @@ export default function Nav() {
         <SheetContent side="right" className="w-[280px] bg-bg-000">
           <SheetTitle className="sr-only">Navigation</SheetTitle>
           <div className="flex flex-col gap-4 pt-4 px-2">
+            {/* Account block at the top of the mobile sheet so it's the
+                first thing the thumb hits. Mirrors the desktop popover. */}
+            {user && (
+              <div className="flex items-center gap-2.5 rounded-lg bg-bg-100 px-3 py-2.5">
+                <span
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-accent-000 text-accent-fg text-[12px] font-semibold shrink-0"
+                  aria-hidden="true"
+                >
+                  {userInitial(userLabel)}
+                </span>
+                <span className="flex-1 min-w-0 truncate text-[13.5px] text-text-000">
+                  {userLabel ?? "Account"}
+                </span>
+              </div>
+            )}
+
             {links.map((l) => (
               <Link
                 key={l.href + l.label}
@@ -205,12 +221,40 @@ export default function Nav() {
                 {l.label}
               </Link>
             ))}
+
+            {user && configured ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileOpen(false);
+                  void handleSignOut();
+                }}
+                disabled={signingOut}
+                className="flex items-center gap-2 text-[15px] text-text-200 hover:text-text-000 transition-colors text-left disabled:opacity-60"
+              >
+                {signingOut ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-text-300" />
+                ) : (
+                  <LogOut className="w-4 h-4 text-text-300" />
+                )}
+                <span>{signingOut ? "Signing out…" : "Sign out"}</span>
+              </button>
+            ) : configured ? (
+              <Link
+                href="/login"
+                onClick={() => setMobileOpen(false)}
+                className="text-[15px] text-text-200 hover:text-text-000 transition-colors"
+              >
+                Sign in
+              </Link>
+            ) : null}
+
             <Link
               href="/chat"
               onClick={() => setMobileOpen(false)}
               className="text-[15px] font-medium bg-accent-000 hover:bg-accent-100 text-accent-fg px-4 py-2 rounded-lg text-center"
             >
-              Install Uniro
+              {user ? "Open app" : "Install Uniro"}
             </Link>
           </div>
         </SheetContent>

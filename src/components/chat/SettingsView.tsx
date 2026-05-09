@@ -319,19 +319,32 @@ export default function SettingsView({
 
   return (
     <div className="flex-1 overflow-auto flex flex-col min-h-0">
-      <div className="max-w-[960px] w-full mx-auto px-12 pt-9 pb-5">
-        <h1 className="text-[30px] font-semibold tracking-tight text-text-000 m-0">Settings</h1>
+      <div className="max-w-[960px] w-full mx-auto px-5 sm:px-8 md:px-12 pt-6 sm:pt-9 pb-5">
+        <h1 className="text-[24px] sm:text-[30px] font-semibold tracking-tight text-text-000 m-0">
+          Settings
+        </h1>
       </div>
 
-      <div className="max-w-[960px] w-full mx-auto px-12 pb-10 grid grid-cols-[180px_1fr] gap-10 items-start">
-        <nav className="flex flex-col gap-px sticky top-5">
+      {/* Two-column on md+ (sidebar + content); single-column on mobile
+          with the tab nav as a horizontally-scrolling chip strip so it
+          doesn't eat vertical space below 768px. */}
+      <div className="max-w-[960px] w-full mx-auto px-5 sm:px-8 md:px-12 pb-10 flex flex-col md:grid md:grid-cols-[180px_1fr] gap-6 md:gap-10 items-start">
+        <nav
+          className={cn(
+            // Desktop: a vertical sticky nav.
+            "md:flex-col md:gap-px md:sticky md:top-5 md:self-start",
+            // Mobile: horizontal scroller spanning full width — touch-
+            // friendly tap targets, edge-fade hint via simple overflow.
+            "flex flex-row gap-1 overflow-x-auto -mx-5 sm:-mx-8 px-5 sm:px-8 pb-1 w-[calc(100%+2.5rem)] sm:w-[calc(100%+4rem)] md:w-auto md:m-0 md:p-0"
+          )}
+        >
           {visibleTabs.map((t) => (
             <button
               key={t.id}
               type="button"
               onClick={() => setTab(t.id)}
               className={cn(
-                "flex items-center gap-2 rounded-lg px-3 py-2 text-left text-[14px] transition-colors",
+                "flex items-center gap-2 rounded-lg px-3 py-2 text-left text-[13.5px] md:text-[14px] transition-colors whitespace-nowrap shrink-0 md:shrink",
                 tab === t.id
                   ? "bg-bg-200 text-text-000 font-medium"
                   : "text-text-200 hover:bg-bg-200 hover:text-text-000"

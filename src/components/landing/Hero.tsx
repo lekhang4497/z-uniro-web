@@ -129,8 +129,10 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Hero meta KPI strip (full width below the 2-panel grid) */}
-        <div className="mt-16 grid grid-cols-4 max-md:grid-cols-2 border-t border-border-200 border-b">
+        {/* Hero meta KPI strip (full width below the 2-panel grid).
+            Sizes step down on small screens so the 2-up grid still
+            breathes at 320px without clipping the labels. */}
+        <div className="mt-12 sm:mt-16 grid grid-cols-4 max-md:grid-cols-2 border-t border-border-200 border-b">
           {[
             ["11", "k★", "On GitHub, first 90 days"],
             ["0.4", "s", "Cold-start, median"],
@@ -139,13 +141,15 @@ export default function Hero() {
           ].map(([num, unit, label], i) => (
             <div
               key={i}
-              className="px-6 py-[22px] border-r border-border-200 last:border-r-0 max-md:[&:nth-child(2)]:border-r-0 max-md:[&:nth-child(-n+2)]:border-b max-md:[&:nth-child(-n+2)]:border-border-200"
+              className="px-4 sm:px-6 py-4 sm:py-[22px] border-r border-border-200 last:border-r-0 max-md:[&:nth-child(2)]:border-r-0 max-md:[&:nth-child(-n+2)]:border-b max-md:[&:nth-child(-n+2)]:border-border-200"
             >
-              <div className="text-[38px] leading-none tracking-tight text-text-000">
+              <div className="text-[26px] sm:text-[32px] md:text-[38px] leading-none tracking-tight text-text-000">
                 {num}
-                <span className="text-[16px] text-text-400 ml-1">{unit}</span>
+                <span className="text-[13px] sm:text-[15px] md:text-[16px] text-text-400 ml-1">
+                  {unit}
+                </span>
               </div>
-              <div className="mt-2 text-[12.5px] text-text-400 tracking-[.02em]">
+              <div className="mt-1.5 sm:mt-2 text-[11.5px] sm:text-[12.5px] text-text-400 tracking-[.02em] leading-snug">
                 {label}
               </div>
             </div>

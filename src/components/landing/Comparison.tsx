@@ -32,47 +32,76 @@ export default function Comparison() {
           models.
         </p>
 
-        <div className="mt-14 overflow-hidden rounded-[14px] border border-border-200 bg-bg-100">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr>
-                  {["Capability", "Uniro", "Plain CLI wrapper", "IDE chat panel"].map(
-                    (h, i) => (
-                      <th
-                        key={h}
-                        className={
-                          "text-left py-4 px-5 text-[11px] font-medium tracking-[.12em] uppercase font-mono bg-bg-200 border-b border-border-200 " +
-                          (i === 1 ? "text-text-000" : "text-text-300")
-                        }
-                      >
-                        {h}
-                      </th>
-                    )
-                  )}
+        {/* Desktop: a 4-col table that's the easiest scan when you have
+            the room. Hidden below md in favor of the stacked card list. */}
+        <div className="mt-14 hidden md:block overflow-hidden rounded-[14px] border border-border-200 bg-bg-100">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr>
+                {["Capability", "Uniro", "Plain CLI wrapper", "IDE chat panel"].map(
+                  (h, i) => (
+                    <th
+                      key={h}
+                      className={
+                        "text-left py-4 px-5 text-[11px] font-medium tracking-[.12em] uppercase font-mono bg-bg-200 border-b border-border-200 " +
+                        (i === 1 ? "text-text-000" : "text-text-300")
+                      }
+                    >
+                      {h}
+                    </th>
+                  )
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={i}>
+                  <td className="py-4 px-5 text-[14px] text-text-000 font-medium w-[38%] border-b border-border-200 last:border-b-0">
+                    {r[0]}
+                  </td>
+                  <td className={`py-4 px-5 text-[14px] bg-[color-mix(in_oklab,var(--text-000)_5%,var(--bg-100))] border-b border-border-200 ${cellCls(r[1])}`}>
+                    {r[1]}
+                  </td>
+                  <td className={`py-4 px-5 text-[14px] border-b border-border-200 ${cellCls(r[2])}`}>
+                    {r[2]}
+                  </td>
+                  <td className={`py-4 px-5 text-[14px] border-b border-border-200 ${cellCls(r[3])}`}>
+                    {r[3]}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {rows.map((r, i) => (
-                  <tr key={i}>
-                    <td className="py-4 px-5 text-[14px] text-text-000 font-medium w-[38%] border-b border-border-200 last:border-b-0">
-                      {r[0]}
-                    </td>
-                    <td className={`py-4 px-5 text-[14px] bg-[color-mix(in_oklab,var(--text-000)_5%,var(--bg-100))] border-b border-border-200 ${cellCls(r[1])}`}>
-                      {r[1]}
-                    </td>
-                    <td className={`py-4 px-5 text-[14px] border-b border-border-200 ${cellCls(r[2])}`}>
-                      {r[2]}
-                    </td>
-                    <td className={`py-4 px-5 text-[14px] border-b border-border-200 ${cellCls(r[3])}`}>
-                      {r[3]}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
+
+        {/* Mobile: one card per capability with three labelled rows.
+            Same data, scannable at 320px without horizontal scroll. */}
+        <ul className="mt-10 md:hidden flex flex-col gap-2.5">
+          {rows.map((r, i) => (
+            <li
+              key={i}
+              className="rounded-[12px] border border-border-200 bg-bg-100 p-4"
+            >
+              <div className="text-[14px] font-medium text-text-000 mb-2.5">
+                {r[0]}
+              </div>
+              <dl className="grid grid-cols-[110px_1fr] gap-y-1.5 gap-x-3 text-[13px]">
+                <dt className="text-[10.5px] tracking-[.12em] uppercase font-mono text-text-000 self-center">
+                  Uniro
+                </dt>
+                <dd className={cellCls(r[1])}>{r[1]}</dd>
+                <dt className="text-[10.5px] tracking-[.12em] uppercase font-mono text-text-300 self-center">
+                  CLI wrapper
+                </dt>
+                <dd className={cellCls(r[2])}>{r[2]}</dd>
+                <dt className="text-[10.5px] tracking-[.12em] uppercase font-mono text-text-300 self-center">
+                  IDE chat
+                </dt>
+                <dd className={cellCls(r[3])}>{r[3]}</dd>
+              </dl>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

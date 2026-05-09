@@ -9,6 +9,7 @@ import {
   Loader2,
   LogIn,
   LogOut,
+  Network,
   Plus,
   Search,
   Settings as SettingsIcon,
@@ -83,12 +84,28 @@ function NavItem({
   label,
   primary,
   onClick,
+  href,
 }: {
   icon: React.ReactNode;
   label: string;
   primary?: boolean;
   onClick?: () => void;
+  // When provided, render as a Link; otherwise a plain button. Lets the
+  // sidebar mix navigations (Router builder, Library, etc.) with
+  // imperative actions (New chat).
+  href?: string;
 }) {
+  const cls = cn(
+    "flex w-full items-center gap-2.5 rounded-[9px] px-2.5 py-2 text-[13px] transition-colors hover:bg-bg-200 hover:text-text-000"
+  );
+  if (href) {
+    return (
+      <Link href={href} className={cls + (primary ? " text-text-000" : " text-text-200")}>
+        {icon}
+        <span className="flex-1 text-left font-normal">{label}</span>
+      </Link>
+    );
+  }
   return (
     <button
       type="button"
@@ -154,6 +171,11 @@ export default function ChatSidebar({
         <NavItem icon={<Search className="w-4 h-4" />} label="Search" />
         <NavItem icon={<LayoutGrid className="w-4 h-4" />} label="Library" />
         <NavItem icon={<Folder className="w-4 h-4" />} label="Spaces" />
+        <NavItem
+          href="/router-builder"
+          icon={<Network className="w-4 h-4" />}
+          label="Router builder"
+        />
         <NavItem icon={<SlidersHorizontal className="w-4 h-4" />} label="Tune" />
       </nav>
 

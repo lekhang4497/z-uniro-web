@@ -121,7 +121,10 @@ export default function PricingPage() {
             <h2 className="text-2xl font-bold tracking-tight text-center mb-8">
               {t("pricingPage.perModelTitle")}
             </h2>
-            <div className="overflow-x-auto rounded-xl border border-border">
+            {/* Desktop: 4-col table. Hidden below md in favor of the
+                stacked card list, which puts the model name at the top
+                of each card and lays input/output prices side-by-side. */}
+            <div className="hidden md:block rounded-xl border border-border">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-primary/8">
@@ -162,6 +165,38 @@ export default function PricingPage() {
                 </tbody>
               </table>
             </div>
+
+            <ul className="md:hidden flex flex-col gap-2.5">
+              {modelPricing.map((row) => (
+                <li
+                  key={row.model}
+                  className="rounded-xl border border-border bg-card p-4"
+                >
+                  <div className="flex items-baseline justify-between gap-3 mb-2.5">
+                    <div className="font-mono text-[13px] text-foreground truncate">
+                      {row.model}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground shrink-0">
+                      {row.provider}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-[12.5px]">
+                    <div>
+                      <div className="text-[10px] tracking-[.12em] uppercase text-muted-foreground mb-0.5">
+                        {t("pricingPage.tableInput")}
+                      </div>
+                      <div className="text-foreground">{row.input}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] tracking-[.12em] uppercase text-muted-foreground mb-0.5">
+                        {t("pricingPage.tableOutput")}
+                      </div>
+                      <div className="text-foreground">{row.output}</div>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </FadeIn>
 
           <div className="mt-20">
